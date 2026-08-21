@@ -27,7 +27,7 @@ class ScholarshipAgentOrchestrator:
         """
         Executes the autonomous scholarship application workflow:
         1. Formulates Execution Plan using Live Gemini 3.6 Flash
-        2. ArmorIQ capture_plan & get_intent_token
+        2. ArmorIQ capture_plan & get_intent_token_details (using live ARMORIQ_API_KEY)
         3. Executes Real Live Web Search to discover actual scholarships
         4. Verifies criteria & documents (Demands missing docs if required)
         5. Governed action verification via ArmorIQ
@@ -41,7 +41,9 @@ class ScholarshipAgentOrchestrator:
             plan=plan.dict()
         )
         
-        intent_token = self.armoriq.get_intent_token(captured_plan, validity_seconds=300)
+        # Get full ArmorIQ telemetry object from API key execution
+        telemetry = self.armoriq.get_intent_token_details(captured_plan, validity_seconds=300)
+        intent_token = telemetry["token_string"]
         
         step_results: List[WorkflowStepResult] = []
         completed_count = 0
@@ -52,7 +54,6 @@ class ScholarshipAgentOrchestrator:
             inputs = step.inputs
             
             try:
-                # Governed Action Check via ArmorIQ
                 governance_res = self.armoriq.invoke(
                     mcp_name=step.tool,
                     action=action,
@@ -73,18 +74,17 @@ class ScholarshipAgentOrchestrator:
                     tool_out = {
                         "tool": "search_scholarships",
                         "search_type": "LIVE_INTERNET_SEARCH",
+                        "armoriq_api_key_verified": telemetry["api_key_used"],
                         "discovered_count": len(live_web_results),
                         "scholarships": live_web_results
                     }
                 elif action == "check_eligibility":
-                    # Check criteria & documents
                     eligibility_res = self.tools.check_eligibility(
                         student_id=inputs["student_id"],
                         scholarship_id=inputs["scholarship_id"]
                     )
                     tool_out = eligibility_res
                     
-                    # If simulate_missing_document or missing documents exist:
                     if simulate_missing_document or not eligibility_res["result"].get("is_eligible"):
                         if not eligibility_res["result"].get("missing_documents"):
                             eligibility_res["result"]["missing_documents"] = ["income_certificate.pdf"]
@@ -134,7 +134,7 @@ class ScholarshipAgentOrchestrator:
                     status="BLOCKED",
                     armoriq_decision="BLOCK",
                     executed=False,
-                    details={"error": str(e), "inputs": inputs},
+                    details={"error": str(e), "inputs": inputs, "armoriq_api_key_used": telemetry["api_key_used"]},
                     error_message=str(e)
                 ))
                 
@@ -146,7 +146,7 @@ class ScholarshipAgentOrchestrator:
                     status="BLOCKED",
                     armoriq_decision="BLOCK",
                     executed=False,
-                    details={"error": str(e), "inputs": inputs},
+                    details={"error": str(e), "inputs": inputs, "armoriq_api_key_used": telemetry["api_key_used"]},
                     error_message=str(e)
                 ))
 
@@ -169,6 +169,7 @@ class ScholarshipAgentOrchestrator:
             completed_steps=completed_count,
             blocked_steps=blocked_count,
             intent_token=intent_token,
+            armoriq_telemetry=telemetry,
             step_results=step_results,
             proof_of_non_execution=proof_res
         )

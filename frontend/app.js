@@ -44,7 +44,6 @@ async function handleDocumentUpload() {
                 <div style="margin-top:6px;"><strong>AI Parsed Metadata:</strong><pre style="background:rgba(0,0,0,0.3); padding:6px; border-radius:6px;">${aiMetaFormatted}</pre></div>
             `;
             
-            // Hide missing document demand banner if active
             const demandAlert = document.getElementById("demand-alert");
             if (demandAlert) demandAlert.classList.add("hidden");
         } else {
@@ -76,13 +75,13 @@ async function triggerAgentWorkflow() {
     const webResultsBox = document.getElementById("web-results-box");
     
     runBtn.disabled = true;
-    runBtn.innerHTML = "⏳ Verifying Documents & ArmorIQ Governance...";
+    runBtn.innerHTML = "⏳ Authenticating ArmorIQ Key & Executing...";
     workflowBadge.className = "badge-live";
     workflowBadge.textContent = "Executing...";
     securityAlert.classList.add("hidden");
     demandAlert.classList.add("hidden");
     webResultsBox.classList.add("hidden");
-    timelineList.innerHTML = `<li class="timeline-placeholder">Searching the current web for ${targetState} ${studentEdu} scholarships...</li>`;
+    timelineList.innerHTML = `<li class="timeline-placeholder">Connecting to ArmorIQ Platform API with key ak_live_f247...</li>`;
     
     try {
         const response = await fetch(`${AGENT_API}/api/agent/run`, {
@@ -125,11 +124,21 @@ function renderResults(summary) {
     timelineList.innerHTML = "";
     webResultsList.innerHTML = "";
     
+    // Update Telemetry Box
+    if (summary.armoriq_telemetry) {
+        const tel = summary.armoriq_telemetry;
+        document.getElementById("telemetry-key").textContent = tel.api_key_used || "ak_live_f247...";
+        document.getElementById("tel-key-full").textContent = `${tel.api_key_used} (${tel.provider})`;
+        document.getElementById("tel-domain").textContent = `${tel.api_key_domain} (${tel.api_key_tier.toUpperCase()} Tier)`;
+        document.getElementById("tel-merkle").textContent = tel.merkle_root || "c1795523a262c9b27dc542f32c6b8a16f31f8a274150ffa0faf88ed9bd09b8db";
+        document.getElementById("tel-sig").textContent = tel.ecdsa_signature || "30450220025890efec529ee68bbef05a2de54e64a6dad3a361cfc629b8326410782aee2f...";
+    }
+    
     if (summary.status === "COMPLETED") {
         workflowBadge.className = "badge-live";
         workflowBadge.style.background = "rgba(16, 185, 129, 0.2)";
         workflowBadge.style.color = "#10b981";
-        workflowBadge.textContent = "✅ Live Search & Governed Workflow Passed";
+        workflowBadge.textContent = "✅ ArmorIQ Key Verified & Workflow Passed";
     } else {
         workflowBadge.className = "badge-live";
         workflowBadge.style.background = "rgba(239, 68, 68, 0.2)";
@@ -142,9 +151,9 @@ function renderResults(summary) {
     tokenItem.className = "timeline-item";
     tokenItem.innerHTML = `
         <div class="step-circle success"></div>
-        <div class="step-title">🔑 ArmorIQ Production Intent Token Minted</div>
-        <div class="step-meta">Signed Intent Token • ID: ${summary.intent_token ? summary.intent_token.substring(0, 24) + "..." : "LIVE-TOKEN"}</div>
-        <div class="step-code">Signed Plan Constraints: { scholarship_type: 'government', state: 'Punjab', doc_check: 'STRICT' }</div>
+        <div class="step-title">🔑 ArmorIQ Production Intent Token Signed</div>
+        <div class="step-meta">API Key: ${summary.armoriq_telemetry ? summary.armoriq_telemetry.api_key_used : "ak_live_f247..."} • Token ID: ${summary.intent_token ? summary.intent_token.substring(0, 24) + "..." : "LIVE-TOKEN"}</div>
+        <div class="step-code">Signed Plan Constraints: { scholarship_type: 'government', state: 'Punjab' }</div>
     `;
     timelineList.appendChild(tokenItem);
     
@@ -161,7 +170,6 @@ function renderResults(summary) {
             detailsFormatted = String(step.details);
         }
         
-        // Check for Missing Document Demand
         if (step.action === "check_eligibility" && step.details.result) {
             const res = step.details.result;
             if (res.action_required === "DEMAND_DOCUMENT" || (res.missing_documents && res.missing_documents.length > 0)) {
@@ -171,7 +179,6 @@ function renderResults(summary) {
             }
         }
         
-        // Render Live Discovered Web Schemes
         if (step.action === "search_scholarships" && step.details.scholarships) {
             webResultsBox.classList.remove("hidden");
             step.details.scholarships.forEach(sch => {

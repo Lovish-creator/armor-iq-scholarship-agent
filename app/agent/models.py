@@ -42,5 +42,6 @@ class AgentRunSummary(BaseModel):
     completed_steps: int
     blocked_steps: int
     intent_token: Optional[str] = None
+    armoriq_telemetry: Optional[Dict[str, Any]] = None
     step_results: List[WorkflowStepResult]
     proof_of_non_execution: Dict[str, Any]
