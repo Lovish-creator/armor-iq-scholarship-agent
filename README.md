@@ -111,6 +111,16 @@ D:\armor-iq-scholarship-agent\
 
 ---
 
+## Integration Status
+
+- ArmorIQ integration: PARTIAL / TEST-MODE
+    - The repository includes a strict production wrapper at `app/armoriq/client.py` which requires the real `armoriq-sdk` package and valid credentials (`ARMORIQ_API_KEY`, etc.). If the SDK or credentials are missing, the production wrapper fails closed and will refuse to perform governance or verification.
+    - For local development and automated unit tests, a clearly labelled test shim is provided at `app/armoriq/test_shim.py`. This shim is a test double only and MUST NOT be treated as real ArmorIQ behavior. Replace the shim with the real SDK client in production by supplying the official `armoriq-sdk` and credentials.
+
+- Mock Scholarship Portal: `mock_portal/` is a local demonstration API backed by SQLite. It is NOT a real portal and is intended for testing and demos only.
+
+Please provide the official ArmorIQ SDK/version and credentials to perform real integration testing. Do NOT paste secrets into the repository or chat.
+
 ## 🚀 Quickstart & Reproduction Guide
 
 ### 1. Environment Setup

@@ -2,7 +2,21 @@ import os
 import json
 import datetime
 from typing import List, Optional, Dict, Any
-from fastapi import APIRouter, HTTPException, Depends, Header, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, Depends, Header
+try:
+    # Optional dependency required only for file upload endpoints
+    from fastapi import UploadFile, File, Form  # type: ignore
+    # Ensure the underlying python-multipart package is available
+    try:
+        import multipart  # type: ignore
+        _MULTIPART_AVAILABLE = True
+    except Exception:
+        _MULTIPART_AVAILABLE = False
+except Exception:
+    UploadFile = None  # type: ignore
+    File = None  # type: ignore
+    Form = None  # type: ignore
+    _MULTIPART_AVAILABLE = False
 from pydantic import BaseModel
 from mock_portal.database import get_db_connection
 from pypdf import PdfReader
@@ -100,78 +114,82 @@ def get_student(student_id: str):
     del res["documents_json"]
     return res
 
-@router.post("/api/documents/upload")
-async def upload_and_parse_document(
-    student_id: str = Form("student-demo-001"),
-    doc_type: str = Form("general"),
-    file: UploadFile = File(...)
-):
-    upload_dir = "D:\\armor-iq-scholarship-agent\\uploads"
-    os.makedirs(upload_dir, exist_ok=True)
-    
-    file_path = os.path.join(upload_dir, file.filename)
-    content = await file.read()
-    with open(file_path, "wb") as f:
-        f.write(content)
+if _MULTIPART_AVAILABLE:
+    @router.post("/api/documents/upload")
+    async def upload_and_parse_document(
+        student_id: str = Form("student-demo-001"),
+        doc_type: str = Form("general"),
+        file: UploadFile = File(...)
+    ):
+        upload_dir = "D:\\armor-iq-scholarship-agent\\uploads"
+        os.makedirs(upload_dir, exist_ok=True)
         
-    extracted_text = ""
-    parsed_meta = {}
-    
-    if file.filename.endswith(".pdf"):
-        try:
-            reader = PdfReader(file_path)
-            for page in reader.pages:
-                extracted_text += page.extract_text() or ""
-        except Exception as e:
-            extracted_text = f"PDF text extraction note: {e}"
+        file_path = os.path.join(upload_dir, file.filename)
+        content = await file.read()
+        with open(file_path, "wb") as f:
+            f.write(content)
             
-    gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-    if gemini_key and len(extracted_text.strip()) > 10:
-        try:
-            from google import genai
-            client = genai.Client(api_key=gemini_key)
-            prompt = (
-                f"Extract structured document info from this text. Document type: {doc_type}.\n"
-                f"Text:\n{extracted_text[:2000]}\n"
-                f"Return JSON with keys: extracted_name, state_of_domicile, annual_income, cgpa, verified_authority."
-            )
-            resp = client.models.generate_content(
-                model='gemini-3.6-flash',
-                contents=prompt,
-                config={'response_mime_type': 'application/json'}
-            )
-            parsed_meta = json.loads(resp.text)
-        except Exception as e:
-            parsed_meta = {"note": f"AI Parsing info: {e}"}
-
-    conn = get_db_connection()
-    student = conn.execute("SELECT * FROM students WHERE student_id = ?", (student_id,)).fetchone()
-    
-    if student:
-        existing_docs = json.loads(student["documents_json"])
-        if file.filename not in existing_docs:
-            existing_docs.append(file.filename)
-            
-        income = parsed_meta.get("annual_income", student["annual_income"])
-        state = parsed_meta.get("state_of_domicile", student["state"])
-        cgpa = parsed_meta.get("cgpa", student["cgpa"])
+        extracted_text = ""
+        parsed_meta = {}
         
-        conn.execute("""
-            UPDATE students 
-            SET documents_json = ?, annual_income = ?, state = ?, cgpa = ?
-            WHERE student_id = ?
-        """, (json.dumps(existing_docs), int(income) if str(income).isdigit() else student["annual_income"], str(state) if state else student["state"], float(cgpa) if str(cgpa).replace('.','',1).isdigit() else student["cgpa"], student_id))
-        conn.commit()
-    conn.close()
+        if file.filename.endswith(".pdf"):
+            try:
+                reader = PdfReader(file_path)
+                for page in reader.pages:
+                    extracted_text += page.extract_text() or ""
+            except Exception as e:
+                extracted_text = f"PDF text extraction note: {e}"
+                
+        gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        if gemini_key and len(extracted_text.strip()) > 10:
+            try:
+                from google import genai
+                client = genai.Client(api_key=gemini_key)
+                prompt = (
+                    f"Extract structured document info from this text. Document type: {doc_type}.\n"
+                    f"Text:\n{extracted_text[:2000]}\n"
+                    f"Return JSON with keys: extracted_name, state_of_domicile, annual_income, cgpa, verified_authority."
+                )
+                resp = client.models.generate_content(
+                    model='gemini-3.6-flash',
+                    contents=prompt,
+                    config={'response_mime_type': 'application/json'}
+                )
+                parsed_meta = json.loads(resp.text)
+            except Exception as e:
+                parsed_meta = {"note": f"AI Parsing info: {e}"}
 
-    return {
-        "success": True,
-        "filename": file.filename,
-        "doc_type": doc_type,
-        "extracted_text_snippet": extracted_text[:300],
-        "ai_parsed_metadata": parsed_meta,
-        "message": f"Document '{file.filename}' uploaded and verified successfully. Student profile updated."
-    }
+        conn = get_db_connection()
+        student = conn.execute("SELECT * FROM students WHERE student_id = ?", (student_id,)).fetchone()
+        
+        if student:
+            existing_docs = json.loads(student["documents_json"])
+            if file.filename not in existing_docs:
+                existing_docs.append(file.filename)
+                
+            income = parsed_meta.get("annual_income", student["annual_income"])
+            state = parsed_meta.get("state_of_domicile", student["state"])
+            cgpa = parsed_meta.get("cgpa", student["cgpa"])
+            
+            conn.execute("""
+                UPDATE students 
+                SET documents_json = ?, annual_income = ?, state = ?, cgpa = ?
+                WHERE student_id = ?
+            """, (json.dumps(existing_docs), int(income) if str(income).isdigit() else student["annual_income"], str(state) if state else student["state"], float(cgpa) if str(cgpa).replace('.','',1).isdigit() else student["cgpa"], student_id))
+            conn.commit()
+        conn.close()
+        
+        return {
+            "success": True,
+            "filename": file.filename,
+            "doc_type": doc_type,
+            "extracted_text_snippet": extracted_text[:300],
+            "ai_parsed_metadata": parsed_meta,
+            "message": f"Document '{file.filename}' uploaded and verified successfully. Student profile updated."
+        }
+else:
+    # Skip defining the upload endpoint if multipart support isn't installed in the environment.
+    pass
 
 @router.get("/api/scholarships")
 def list_scholarships(scholarship_type: Optional[str] = None, state: Optional[str] = None):

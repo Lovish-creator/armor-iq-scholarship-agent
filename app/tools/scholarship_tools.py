@@ -1,6 +1,9 @@
 from typing import Dict, Any, Optional
 
 from app.scholarship.service import ScholarshipService
+from app.armoriq.errors import ArmorIQException
+
+from typing import Dict, Any, Optional
 
 
 class ScholarshipMCPTools:
@@ -15,8 +18,9 @@ class ScholarshipMCPTools:
     submit_application() method is called.
     """
 
-    def __init__(self, service: Optional[ScholarshipService] = None):
+    def __init__(self, service: Optional[ScholarshipService] = None, armoriq_client: Optional[Any] = None):
         self.service = service or ScholarshipService()
+        self.armoriq = armoriq_client
 
         # Runtime instrumentation.
         # This is used to prove whether the protected tool
@@ -106,10 +110,23 @@ class ScholarshipMCPTools:
 
         self.submit_invocation_count += 1
 
-        if armoriq_decision != "ALLOW":
-            raise PermissionError(
-                "Protected action denied: ArmorIQ decision is not ALLOW."
-            )
+        # Defense-in-depth: verify the intent token via ArmorIQ wrapper
+        if not self.armoriq:
+            # No ArmorIQ client available for verification — fail closed.
+            raise ArmorIQException("No ArmorIQ client available to verify intent token. Refusing to execute protected action.")
+
+        # This will raise IntentMismatchException or other ArmorIQException on failure.
+        verification = self.armoriq.verify_intent_token(
+            intent_token=intent_token,
+            mcp="mcp_scholarship_tool",
+            expected_action="submit_application",
+            params={"scholarship_id": scholarship_id, "student_id": student_id},
+        )
+
+        decision = verification.get("decision")
+
+        if decision != "ALLOW":
+            raise PermissionError("Protected action denied: ArmorIQ verification did not allow this action.")
 
         result = self.service.submit_application(
             student_id=student_id,
@@ -123,4 +140,5 @@ class ScholarshipMCPTools:
             "execution_result": result,
             "mcp_invoked": True,
             "protected_action_executed": True,
+            "armoriq_verification": verification,
         }

@@ -42,6 +42,8 @@ class PlanCaptureResult:
         )
 
 
+
+
 class ArmorIQWrapperClient:
     """
     Strict ArmorIQ SDK adapter.
@@ -93,11 +95,15 @@ class ArmorIQWrapperClient:
 
         try:
 
+            # Initialize the official SDK client
             self.client = ArmorIQClient(
                 api_key=self.api_key,
                 user_id=self.user_id,
                 agent_id=self.agent_id,
             )
+
+            # Session holder for the most recent plan/session lifecycle.
+            self._last_session = None
 
         except Exception as exc:
 
@@ -113,16 +119,53 @@ class ArmorIQWrapperClient:
     ) -> PlanCaptureResult:
 
         try:
+            # Use the Python SDK session API to start a session and record the plan.
+            SessionOptions = getattr(self.client, "SessionOptions", None)
+            if SessionOptions is None:
+                # SDK doesn't expose SessionOptions; fail closed.
+                raise ArmorIQException("ArmorIQ SDK SessionOptions unavailable")
 
-            raw_plan = self.client.capture_plan(
+            options = SessionOptions(
+                mode="sdk",
                 llm=llm,
-                prompt=prompt,
-                plan=plan,
             )
 
-            return PlanCaptureResult(
-                raw_sdk_obj=raw_plan
-            )
+            session = self.client.start_session(options)
+
+            # Convert provided plan into the SDK expected tool call shape.
+            steps = plan.get("steps") if isinstance(plan, dict) else getattr(plan, "steps", [])
+            calls = []
+            for s in steps:
+                # step may be Pydantic model or dict
+                name = None
+                args = {}
+                if isinstance(s, dict):
+                    tool = s.get("tool")
+                    action = s.get("action")
+                    args = s.get("inputs", {}) or {}
+                else:
+                    tool = getattr(s, "tool", None)
+                    action = getattr(s, "action", None)
+                    args = getattr(s, "inputs", {}) or {}
+
+                # Use MCP-style name: <mcp>__<action>
+                if tool and action:
+                    name = f"{tool}__{action}"
+                elif action:
+                    name = action
+
+                if name:
+                    calls.append({"name": name, "args": args})
+
+            goal = plan.get("goal") if isinstance(plan, dict) else getattr(plan, "goal", prompt)
+
+            # Start the plan trace in the session
+            session.start_plan(calls, goal=goal)
+
+            # Store session for later check/verification calls
+            self._last_session = session
+
+            return PlanCaptureResult(raw_sdk_obj=session)
 
         except Exception as exc:
 
@@ -138,27 +181,31 @@ class ArmorIQWrapperClient:
 
         try:
 
-            token_obj = self.client.get_intent_token(
-                plan_capture.raw_sdk_obj
-            )
+            # Prefer explicit SDK method if available
+            get_token_fn = getattr(self.client, "get_intent_token", None)
+            if callable(get_token_fn):
+                token_obj = get_token_fn(plan_capture.raw_sdk_obj)
+                if not token_obj:
+                    raise InvalidTokenException("ArmorIQ returned no intent token.")
+                token_string = str(token_obj)
+                return {
+                    "token_string": token_string,
+                    "token_id": getattr(token_obj, "token_id", None),
+                    "api_key_used": True,
+                    "provider": "ArmorIQ SDK",
+                }
 
-            if not token_obj:
-
-                raise InvalidTokenException(
-                    "ArmorIQ returned no intent token."
-                )
-
-            token_string = str(token_obj)
+            # Fallback: return session metadata if a session is available
+            session = getattr(plan_capture, "raw_sdk_obj", None) or getattr(self, "_last_session", None)
+            session_id = None
+            if session is not None:
+                session_id = getattr(session, "session_id", None) or getattr(session, "id", None) or str(session)
 
             return {
-                "token_string": token_string,
-                "token_id": getattr(
-                    token_obj,
-                    "token_id",
-                    None,
-                ),
+                "token_string": session_id,
+                "token_id": session_id,
                 "api_key_used": True,
-                "provider": "ArmorIQ SDK",
+                "provider": "ArmorIQ SDK (session)",
             }
 
         except (
@@ -189,57 +236,140 @@ class ArmorIQWrapperClient:
 
         return details["token_string"]
 
-    def invoke(
+    def verify_intent_token(
         self,
-        mcp: str,
-        action: str,
         intent_token: str,
-        params: Dict[str, Any],
-        user_email: str,
+        mcp: Optional[str] = None,
+        expected_action: Optional[str] = None,
+        params: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
+        """
+        Verify the provided intent token against the ArmorIQ service.
+
+        IMPORTANT: This method intentionally does not implement a local
+        replacement for ArmorIQ verification. If the underlying SDK
+        exposes a verification API, it will be invoked. If the SDK is
+        not available or verification cannot be performed, this method
+        MUST raise an exception to enforce fail-closed behavior.
+        """
 
         if not intent_token:
+            raise InvalidTokenException("No intent token supplied for verification.")
 
-            raise InvalidTokenException(
-                "No ArmorIQ intent token supplied."
-            )
+        # If a session is available, use its check() API
+        session = getattr(self, "_last_session", None)
 
-        try:
+        if session is not None and hasattr(session, "check"):
+            # Ensure token matches session if provided
+            session_id = getattr(session, "session_id", None) or getattr(session, "id", None)
+            if intent_token and session_id and str(intent_token) != str(session_id):
+                raise InvalidTokenException("Intent token does not match active ArmorIQ session.")
 
-            result = self.client.invoke(
-                mcp=mcp,
-                action=action,
-                intent_token=intent_token,
-                params=params,
-                user_email=user_email,
-            )
+            # Construct tool name: prefer MCP__action pattern
+            tool_name = None
+            if mcp and expected_action:
+                tool_name = f"{mcp}__{expected_action}"
+            elif expected_action:
+                tool_name = expected_action
 
-            return {
-                "decision": "ALLOW",
-                "raw": str(result),
-                "mcp": mcp,
-                "action": action,
-            }
+            try:
+                decision = session.check(tool_name, params or {})
+                # decision is expected to have 'allowed' boolean per SDK
+                allowed = getattr(decision, "allowed", None)
+                if allowed is None:
+                    # Some SDK builds may return a dict-like object
+                    allowed = bool(decision.get("allowed")) if isinstance(decision, dict) else False
 
-        except Exception as exc:
+                return {"decision": "ALLOW" if allowed else "BLOCK", "raw": decision}
 
-            message = str(exc)
-
-            lowered = message.lower()
-
-            if (
-                "intent" in lowered
-                or "scope" in lowered
-                or "mismatch" in lowered
-                or "policy" in lowered
-                or "denied" in lowered
-                or "blocked" in lowered
+            except (
+                InvalidTokenException,
+                IntentMismatchException,
+                TokenExpiredException,
+                PolicyBlockedException,
             ):
+                raise
+            except Exception as exc:
+                raise ArmorIQException(f"ArmorIQ token verification failed: {exc}") from exc
 
-                raise IntentMismatchException(
-                    f"ArmorIQ denied the action: {message}"
+        # Otherwise, if the client exposes a verification API, use it
+        verify_fn = getattr(self.client, "verify_intent_token", None)
+        if callable(verify_fn):
+            try:
+                res = verify_fn(intent_token=intent_token, expected_action=expected_action, params=params, mcp=mcp)
+                if isinstance(res, dict) and res.get("decision"):
+                    return res
+                raise ArmorIQException("Unexpected verification response from SDK")
+            except (
+                InvalidTokenException,
+                IntentMismatchException,
+                TokenExpiredException,
+                PolicyBlockedException,
+            ):
+                raise
+            except Exception as exc:
+                raise ArmorIQException(f"ArmorIQ token verification failed: {exc}") from exc
+
+        raise ArmorIQException("ArmorIQ SDK verification API not available. Cannot verify intent token.")
+
+    def invoke(
+        self,
+        mcp: Optional[str] = None,
+        mcp_name: Optional[str] = None,
+        action: Optional[str] = None,
+        intent_token: Optional[str] = None,
+        params: Optional[Dict[str, Any]] = None,
+        inputs: Optional[Dict[str, Any]] = None,
+        user_email: Optional[str] = None,
+    ) -> Dict[str, Any]:
+
+        # tolerate both 'mcp' and 'mcp_name', and 'params' or 'inputs'
+        mcp_final = mcp or mcp_name
+        params_final = params or inputs or {}
+
+        if not intent_token:
+            raise InvalidTokenException("No ArmorIQ intent token supplied.")
+
+        # If the SDK provides an invoke API, call it. Otherwise, fail closed.
+        invoke_fn = getattr(self.client, "invoke", None)
+
+        if callable(invoke_fn):
+            try:
+                result = invoke_fn(
+                    mcp=mcp_final,
+                    action=action,
+                    intent_token=intent_token,
+                    params=params_final,
+                    user_email=user_email,
+                )
+
+                return {
+                    "decision": "ALLOW",
+                    "raw": str(result),
+                    "mcp": mcp_final,
+                    "action": action,
+                }
+
+            except Exception as exc:
+
+                message = str(exc)
+                lowered = message.lower()
+
+                if (
+                    "intent" in lowered
+                    or "scope" in lowered
+                    or "mismatch" in lowered
+                    or "policy" in lowered
+                    or "denied" in lowered
+                    or "blocked" in lowered
+                ):
+
+                    raise IntentMismatchException(
+                        f"ArmorIQ denied the action: {message}"
+                    ) from exc
+
+                raise ArmorIQException(
+                    f"ArmorIQ invocation failed: {message}"
                 ) from exc
 
-            raise ArmorIQException(
-                f"ArmorIQ invocation failed: {message}"
-            ) from exc
+        raise ArmorIQException("ArmorIQ SDK invoke API not available. Cannot perform governance invocation.")

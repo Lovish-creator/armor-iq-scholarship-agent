@@ -52,9 +52,11 @@ class FakeArmorIQDenied:
 
 def test_denied_submission_is_never_invoked():
 
-    tools = ScholarshipMCPTools()
-
     armor = FakeArmorIQDenied()
+
+    # Ensure the tools instance has the ArmorIQ test double injected so
+    # the protected submit_application() can perform verification if reached.
+    tools = ScholarshipMCPTools(armoriq_client=armor)
 
     orchestrator = ScholarshipAgentOrchestrator(
         armoriq_client=armor,

@@ -35,9 +35,12 @@ class ScholarshipAgentOrchestrator:
             or ArmorIQWrapperClient()
         )
 
+        # Inject ArmorIQ client into the MCP tools so they can perform
+        # authoritative verification (defense-in-depth) before executing
+        # consequential protected actions.
         self.tools = (
             tools
-            or ScholarshipMCPTools()
+            or ScholarshipMCPTools(armoriq_client=self.armoriq)
         )
 
         self.planner = AgentPlanner()

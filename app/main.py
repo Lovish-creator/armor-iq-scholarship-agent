@@ -7,6 +7,11 @@ from typing import Optional, Dict, Any
 
 from app.agent.models import StudentIntent, AgentRunSummary
 from app.agent.orchestrator import ScholarshipAgentOrchestrator
+import os
+# Optional test shim for local development without the official ArmorIQ SDK
+TEST_SHIM_ENABLED = os.getenv("ARMORIQ_TEST_SHIM", "false").lower() in ("1", "true", "yes")
+if TEST_SHIM_ENABLED:
+    from app.armoriq.test_shim import FakeArmorIQShim  # type: ignore
 from app.scholarship.service import ScholarshipService
 
 app = FastAPI(
@@ -23,7 +28,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-orchestrator = ScholarshipAgentOrchestrator()
+if TEST_SHIM_ENABLED:
+    orchestrator = ScholarshipAgentOrchestrator(armoriq_client=FakeArmorIQShim())
+else:
+    orchestrator = ScholarshipAgentOrchestrator()
 service = ScholarshipService()
 
 class WorkflowRunRequest(BaseModel):
