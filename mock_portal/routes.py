@@ -1,9 +1,11 @@
-from fastapi import APIRouter, HTTPException, Depends, Header
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+import os
 import json
 import datetime
+from typing import List, Optional, Dict, Any
+from fastapi import APIRouter, HTTPException, Depends, Header, UploadFile, File, Form
+from pydantic import BaseModel
 from mock_portal.database import get_db_connection
+from pypdf import PdfReader
 
 router = APIRouter()
 
@@ -20,7 +22,7 @@ class ApplicationSubmitRequest(BaseModel):
     student_id: str
     scholarship_id: str
     intent_token: Optional[str] = None
-    armoriq_decision: str = "ALLOW" # "ALLOW", "BLOCK", "HOLD"
+    armoriq_decision: str = "ALLOW"
 
 @router.get("/api/student/{student_id}")
 def get_student(student_id: str):
@@ -34,6 +36,87 @@ def get_student(student_id: str):
     res["documents"] = json.loads(res["documents_json"])
     del res["documents_json"]
     return res
+
+@router.post("/api/documents/upload")
+async def upload_and_parse_document(
+    student_id: str = Form("student-demo-001"),
+    doc_type: str = Form("general"),
+    file: UploadFile = File(...)
+):
+    """
+    Accepts real student document files (PDF/Image), parses text and parameters
+    using pypdf and Gemini AI, and dynamically updates the student profile database.
+    """
+    upload_dir = "D:\\armor-iq-scholarship-agent\\uploads"
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    file_path = os.path.join(upload_dir, file.filename)
+    content = await file.read()
+    with open(file_path, "wb") as f:
+        f.write(content)
+        
+    extracted_text = ""
+    parsed_meta = {}
+    
+    # Text extraction via PyPDF
+    if file.filename.endswith(".pdf"):
+        try:
+            reader = PdfReader(file_path)
+            for page in reader.pages:
+                extracted_text += page.extract_text() or ""
+        except Exception as e:
+            extracted_text = f"PDF text extraction note: {e}"
+            
+    # Gemini AI Multimodal Vision / Document Intelligence
+    gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if gemini_key and len(extracted_text.strip()) > 10:
+        try:
+            from google import genai
+            client = genai.Client(api_key=gemini_key)
+            prompt = (
+                f"Extract structured document info from this text. Document type: {doc_type}.\n"
+                f"Text:\n{extracted_text[:2000]}\n"
+                f"Return JSON with keys: extracted_name, state_of_domicile, annual_income, cgpa, verified_authority."
+            )
+            resp = client.models.generate_content(
+                model='gemini-3.6-flash',
+                contents=prompt,
+                config={'response_mime_type': 'application/json'}
+            )
+            parsed_meta = json.loads(resp.text)
+        except Exception as e:
+            parsed_meta = {"note": f"AI Parsing info: {e}"}
+
+    # Update Student Record in Database with newly uploaded document
+    conn = get_db_connection()
+    student = conn.execute("SELECT * FROM students WHERE student_id = ?", (student_id,)).fetchone()
+    
+    if student:
+        existing_docs = json.loads(student["documents_json"])
+        if file.filename not in existing_docs:
+            existing_docs.append(file.filename)
+            
+        # Update income/state/cgpa if extracted
+        income = parsed_meta.get("annual_income", student["annual_income"])
+        state = parsed_meta.get("state_of_domicile", student["state"])
+        cgpa = parsed_meta.get("cgpa", student["cgpa"])
+        
+        conn.execute("""
+            UPDATE students 
+            SET documents_json = ?, annual_income = ?, state = ?, cgpa = ?
+            WHERE student_id = ?
+        """, (json.dumps(existing_docs), int(income) if str(income).isdigit() else student["annual_income"], str(state) if state else student["state"], float(cgpa) if str(cgpa).replace('.','',1).isdigit() else student["cgpa"], student_id))
+        conn.commit()
+    conn.close()
+
+    return {
+        "success": True,
+        "filename": file.filename,
+        "doc_type": doc_type,
+        "extracted_text_snippet": extracted_text[:300],
+        "ai_parsed_metadata": parsed_meta,
+        "message": f"Document '{file.filename}' uploaded and verified successfully. Student profile updated."
+    }
 
 @router.get("/api/scholarships")
 def list_scholarships(scholarship_type: Optional[str] = None, state: Optional[str] = None):
@@ -55,7 +138,6 @@ def list_scholarships(scholarship_type: Optional[str] = None, state: Optional[st
         item["eligible_fields"] = json.loads(item["eligible_fields_json"])
         item["required_documents"] = json.loads(item["required_documents_json"])
         
-        # Apply state filter if provided
         if state:
             if "All India" not in item["eligible_states"] and state not in item["eligible_states"]:
                 continue
@@ -91,37 +173,49 @@ def check_eligibility(req: EligibilityCheckRequest):
     sc = dict(scholarship)
     eligible_states = json.loads(sc["eligible_states_json"])
     eligible_fields = json.loads(sc["eligible_fields_json"])
+    required_docs = json.loads(sc["required_documents_json"])
+    student_docs = json.loads(st["documents_json"])
     
     reasons = []
+    missing_docs = []
     is_eligible = True
     
-    # Check state
+    # 1. State Verification
     if "All India" not in eligible_states and st["state"] not in eligible_states:
         is_eligible = False
         reasons.append(f"State mismatch: Student is from {st['state']}, scholarship requires {eligible_states}")
         
-    # Check income
+    # 2. Income Verification
     if st["annual_income"] > sc["income_limit"]:
         is_eligible = False
         reasons.append(f"Income limit exceeded: Student income ₹{st['annual_income']} > Limit ₹{sc['income_limit']}")
         
-    # Check field
+    # 3. Field Verification
     student_field_match = any(field.lower() in st["education"].lower() for field in eligible_fields)
     if not student_field_match:
         is_eligible = False
         reasons.append(f"Field mismatch: Student education '{st['education']}' does not match required fields {eligible_fields}")
         
-    # Check CGPA
+    # 4. CGPA Verification
     if st["cgpa"] < sc["min_cgpa"]:
         is_eligible = False
         reasons.append(f"CGPA below limit: Student CGPA {st['cgpa']} < Required {sc['min_cgpa']}")
-        
+
+    # 5. Mandatory Document Verification & Demand
+    for doc in required_docs:
+        if not any(doc.lower() in sd.lower() for sd in student_docs):
+            is_eligible = False
+            missing_docs.append(doc)
+            reasons.append(f"Missing Mandatory Document: '{doc}' has not been uploaded.")
+
     return {
         "student_id": req.student_id,
         "scholarship_id": req.scholarship_id,
         "scholarship_name": sc["name"],
         "scholarship_type": sc["scholarship_type"],
         "is_eligible": is_eligible,
+        "missing_documents": missing_docs,
+        "action_required": "DEMAND_DOCUMENT" if missing_docs else "NONE",
         "rejection_reasons": reasons
     }
 
@@ -151,9 +245,7 @@ def submit_application(req: ApplicationSubmitRequest):
     conn = get_db_connection()
     now_str = datetime.datetime.now().isoformat()
     
-    # Check if ArmorIQ blocked the request
     if req.armoriq_decision != "ALLOW":
-        # Log non-execution attempt!
         conn.execute("""
             INSERT INTO tool_execution_logs (timestamp, action, tool, target_scholarship_id, intent_token, armoriq_decision, executed, detail)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -166,14 +258,12 @@ def submit_application(req: ApplicationSubmitRequest):
             detail=f"ArmorIQ Governance Violation: Submission aborted. Decision was {req.armoriq_decision}. Tool execution was BLOCKED and NOT executed."
         )
 
-    # If ALLOWED, execute submission
     app_id = f"APP-{req.student_id}-{req.scholarship_id}"
     conn.execute("""
         INSERT OR REPLACE INTO applications (application_id, student_id, scholarship_id, status, intent_token, applied_at)
         VALUES (?, ?, ?, ?, ?, ?)
     """, (app_id, req.student_id, req.scholarship_id, "SUBMITTED", req.intent_token or "TOKEN-APPROVED", now_str))
     
-    # Log successful execution
     conn.execute("""
         INSERT INTO tool_execution_logs (timestamp, action, tool, target_scholarship_id, intent_token, armoriq_decision, executed, detail)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)

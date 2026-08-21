@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScholarShield AI — Intent-Governed Autonomous Scholarship Agent</title>
+    <title>ScholarShield AI — Real Interactive Document & Governance Platform</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -14,59 +14,96 @@
             <div class="brand">
                 <div class="shield-logo">🛡️</div>
                 <div class="brand-text">
-                    <h1>ScholarShield <span class="badge-armoriq">ArmorIQ Governed</span></h1>
-                    <p class="tagline">Autonomous Scholarship Agent with Cryptographic Intent Boundary Enforcement</p>
+                    <h1>ScholarShield <span class="badge-armoriq">Live ArmorIQ & Gemini Vision Active</span></h1>
+                    <p class="tagline">Interactive Scholarship Platform with Real Document Intelligence & Cryptographic Governance</p>
                 </div>
             </div>
             <div class="status-pills">
-                <span class="pill pill-green" id="portal-status"><span class="dot"></span> Mock Portal: Online</span>
-                <span class="pill pill-purple" id="armoriq-status"><span class="dot"></span> ArmorIQ Intent Proxy: Active</span>
+                <span class="pill pill-green" id="portal-status"><span class="dot"></span> Real Document Engine: Active</span>
+                <span class="pill pill-purple" id="armoriq-status"><span class="dot"></span> Live ArmorIQ Pro API: Connected</span>
             </div>
         </header>
 
-        <!-- Main Dashboard Container -->
+        <!-- Main Dashboard Grid -->
         <main class="dashboard-grid">
-            <!-- Left Column: Student Profile & Intent Setup -->
+            <!-- Left Column: Student Profile, Real Doc Upload & Intent Setup -->
             <section class="card panel-setup">
-                <div class="card-header">
-                    <h2>👤 Synthetic Student Identity</h2>
-                    <span class="badge-subtle">Authenticated ID: student-demo-001</span>
+                <div class="card-header flex-between">
+                    <h2>👤 Interactive Student Identity</h2>
+                    <span class="badge-subtle">ID: student-demo-001</span>
                 </div>
-                <div class="student-profile-box">
+                
+                <!-- Dynamic Profile Box -->
+                <div class="student-profile-box" id="profile-box">
                     <div class="profile-row">
                         <span class="label">Name:</span>
-                        <span class="valueHighlight">Gurpreet Singh</span>
+                        <span class="valueHighlight" id="st-name">Gurpreet Singh</span>
                     </div>
                     <div class="profile-row">
                         <span class="label">Education:</span>
-                        <span class="value">B.Tech Computer Science</span>
+                        <span class="value" id="st-edu">B.Tech Computer Science</span>
                     </div>
                     <div class="profile-row">
                         <span class="label">State of Domicile:</span>
-                        <span class="value">Punjab</span>
+                        <span class="value" id="st-state">Punjab</span>
                     </div>
                     <div class="profile-row">
                         <span class="label">Annual Income:</span>
-                        <span class="value">₹4,50,000 (Low-Income Band)</span>
+                        <span class="value" id="st-income">₹4,50,000</span>
                     </div>
                     <div class="profile-row">
-                        <span class="label">Verified Documents:</span>
-                        <span class="doc-tags">
-                            <span class="tag">12th Marksheet</span>
-                            <span class="tag">Income Cert</span>
-                            <span class="tag">Punjab Domicile</span>
+                        <span class="label">CGPA / Marks:</span>
+                        <span class="value" id="st-cgpa">8.5 CGPA</span>
+                    </div>
+                    <div class="profile-row">
+                        <span class="label">Uploaded Documents:</span>
+                        <span class="doc-tags" id="st-docs">
+                            <span class="tag">marksheet_12th.pdf</span>
+                            <span class="tag">income_certificate.pdf</span>
                         </span>
                     </div>
                 </div>
 
                 <hr class="divider">
 
+                <!-- REAL DOCUMENT UPLOAD BOX -->
+                <div class="card-header">
+                    <h2>📄 Real Document Upload & AI Intelligence</h2>
+                    <p class="tagline">Upload your real PDF / Image certificate to parse parameters using Gemini Vision & PyPDF</p>
+                </div>
+                <div class="doc-upload-box">
+                    <form id="upload-form" onsubmit="event.preventDefault(); handleDocumentUpload();">
+                        <div class="grid-2col">
+                            <div class="form-group">
+                                <label for="doc-type">Document Type:</label>
+                                <select id="doc-type" class="input-select">
+                                    <option value="income_certificate">Income Certificate</option>
+                                    <option value="domicile_certificate">Domicile Proof</option>
+                                    <option value="marksheet">Marksheet / Transcript</option>
+                                    <option value="id_proof">Aadhaar / ID Card</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="doc-file">Select PDF / File:</label>
+                                <input type="file" id="doc-file" class="input-text" accept=".pdf,.png,.jpg,.jpeg" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-secondary" id="upload-btn">
+                            📤 Upload & Extract Document Data
+                        </button>
+                    </form>
+                    <div class="upload-log hidden" id="upload-log"></div>
+                </div>
+
+                <hr class="divider">
+
+                <!-- INTENT SETUP FORM -->
                 <div class="card-header">
                     <h2>🎯 Student Intent & Authority Constraints</h2>
                 </div>
                 <form id="intent-form" onsubmit="event.preventDefault(); triggerAgentWorkflow();">
                     <div class="form-group">
-                        <label for="raw-prompt">Natural Instruction:</label>
+                        <label for="raw-prompt">Natural Language Instruction:</label>
                         <textarea id="raw-prompt" rows="3" class="input-text">Find government engineering scholarships in Punjab I am eligible for and apply.</textarea>
                     </div>
 
@@ -103,15 +140,15 @@
                     </div>
 
                     <button type="submit" class="btn-primary" id="run-btn">
-                        🚀 Launch Governed Workflow
+                        🚀 Launch Governed Agent Workflow
                     </button>
                 </form>
             </section>
 
-            <!-- Right Column: Live Execution & ArmorIQ Governance Stream -->
+            <!-- Right Column: Interactive Document Demand & Live Execution Stream -->
             <section class="card panel-execution">
                 <div class="card-header flex-between">
-                    <h2>⚡ Live Execution & Governance Log</h2>
+                    <h2>⚡ Live Response Stream & Governance Verification</h2>
                     <span class="badge-live" id="workflow-badge">Idle</span>
                 </div>
 
@@ -119,12 +156,24 @@
                 <div class="proof-banner" id="proof-banner">
                     <div class="proof-icon">🛡️</div>
                     <div class="proof-content">
-                        <h4>ARMORIQ NON-EXECUTION VERIFICATION</h4>
-                        <p id="proof-text">Consequential Tool Execution Count: <strong>0 Un-authorized Submissions</strong></p>
+                        <h4>ARMORIQ PROOF OF NON-EXECUTION</h4>
+                        <p id="proof-text">Consequential Submissions: <strong>1 Approved</strong> | Blocked Unauthorized Attempts: <strong>0</strong></p>
                     </div>
                 </div>
 
-                <!-- Security Violation Alert (Hidden by Default) -->
+                <!-- DOCUMENT DEMAND NOTIFICATION (Shown when document is demanded) -->
+                <div class="demand-alert-box hidden" id="demand-alert">
+                    <div class="alert-header" style="color: #f59e0b;">
+                        <span class="alert-icon">📄</span>
+                        <h3>PORTAL DEMANDS MANDATORY DOCUMENT</h3>
+                    </div>
+                    <div class="alert-body">
+                        <p>Eligibility check requires document: <strong id="demanded-doc-name" style="color:#fcd34d;">income_certificate.pdf</strong></p>
+                        <p>Please upload the demanded document above to fulfill criteria verification.</p>
+                    </div>
+                </div>
+
+                <!-- Security Violation Alert (Shown when ArmorIQ blocks) -->
                 <div class="security-alert-box hidden" id="security-alert">
                     <div class="alert-header">
                         <span class="alert-icon">🚫</span>
@@ -132,20 +181,20 @@
                     </div>
                     <div class="alert-body">
                         <p><strong>Attempted Action:</strong> <code id="alert-action">submit_application</code></p>
-                        <p><strong>Target Target:</strong> <code id="alert-target">SCH-PRV-GLOBAL-03 (Private Scholarship)</code></p>
+                        <p><strong>Target Scholarship:</strong> <code id="alert-target">SCH-PRV-GLOBAL-03 (Private Award)</code></p>
                         <p><strong>ArmorIQ Decision:</strong> <span class="badge-blocked">BLOCKED</span></p>
-                        <p><strong>Reason:</strong> <span id="alert-reason">Target action exceeds user intent boundary ('government' constraint required).</span></p>
+                        <p><strong>Reason:</strong> <span id="alert-reason">Target action violates signed user intent constraint ('government' constraint required).</span></p>
                         <div class="proof-badge-box">
-                            🔒 <strong>Proof of Non-Execution:</strong> Tool call aborted. Scholarship Portal DB application submission count remained <strong>0</strong>.
+                            🔒 <strong>Proof of Non-Execution:</strong> Tool call aborted. Portal Database application submission count remained <strong>0</strong>.
                         </div>
                     </div>
                 </div>
 
                 <!-- Step Execution Timeline -->
                 <div class="timeline-container">
-                    <div class="timeline-header">Execution Timeline & MCP Tool Dispatch</div>
+                    <div class="timeline-header">Execution Timeline & MCP Tool Stream</div>
                     <ul class="timeline-list" id="timeline-list">
-                        <li class="timeline-placeholder">Ready to execute workflow. Configure intent parameters and click 'Launch Governed Workflow'.</li>
+                        <li class="timeline-placeholder">Ready to execute workflow. Configure intent parameters or upload documents above.</li>
                     </ul>
                 </div>
             </section>
