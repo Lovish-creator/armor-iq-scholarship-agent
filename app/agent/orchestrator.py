@@ -117,26 +117,28 @@ class ScholarshipAgentOrchestrator:
                 completed_count += 1
                 
             except IntentMismatchException as e:
-                blocked_count += 1
-                armoriq_decision = "BLOCK"
-                
-                if action == "submit_application":
-                    self.tools.submit_application(
-                        student_id=inputs["student_id"],
-                        scholarship_id=inputs["scholarship_id"],
-                        intent_token=intent_token,
-                        armoriq_decision="BLOCK"
-                    )
-                    
-                step_results.append(WorkflowStepResult(
-                    step_id=step.step_id,
-                    action=action,
-                    status="BLOCKED",
-                    armoriq_decision="BLOCK",
-                    executed=False,
-                    details={"error": str(e), "inputs": inputs, "armoriq_api_key_used": telemetry["api_key_used"]},
-                    error_message=str(e)
-                ))
+    blocked_count += 1
+
+    step_results.append(
+        WorkflowStepResult(
+            step_id=step.step_id,
+            action=action,
+            status="BLOCKED",
+            armoriq_decision="BLOCK",
+            executed=False,
+            details={
+                "error": str(e),
+                "inputs": inputs,
+                "armoriq_api_key_used": telemetry["api_key_used"],
+                "mcp_invoked": False,
+                "protected_action_executed": False,
+            },
+            error_message=str(e),
+        )
+    )
+
+    # CRITICAL SECURITY PROPERTY:
+    # Do NOT invoke the protected tool after ArmorIQ blocks it.
                 
             except ArmorIQException as e:
                 blocked_count += 1
