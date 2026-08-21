@@ -140,18 +140,27 @@ class ScholarshipAgentOrchestrator:
     # CRITICAL SECURITY PROPERTY:
     # Do NOT invoke the protected tool after ArmorIQ blocks it.
                 
-            except ArmorIQException as e:
-                blocked_count += 1
-                step_results.append(WorkflowStepResult(
-                    step_id=step.step_id,
-                    action=action,
-                    status="BLOCKED",
-                    armoriq_decision="BLOCK",
-                    executed=False,
-                    details={"error": str(e), "inputs": inputs, "armoriq_api_key_used": telemetry["api_key_used"]},
-                    error_message=str(e)
-                ))
+except ArmorIQException as e:
+    blocked_count += 1
 
+    step_results.append(
+        WorkflowStepResult(
+            step_id=step.step_id,
+            action=action,
+            status="BLOCKED",
+            armoriq_decision="BLOCK",
+            executed=False,
+            details={
+                "error": str(e),
+                "inputs": inputs,
+                "mcp_invoked": False,
+                "protected_action_executed": False,
+            },
+            error_message=str(e),
+        )
+    )
+
+    # Fail closed.
         proof_res = {}
         try:
             with httpx.Client(timeout=5.0) as http_client:
