@@ -110,23 +110,30 @@ class ScholarshipMCPTools:
 
         self.submit_invocation_count += 1
 
-        # Defense-in-depth: verify the intent token via ArmorIQ wrapper
+
+        # Defense-in-depth: refuse to execute unless orchestration
+        # supplied an explicit ALLOW decision. For the official SDK
+        # wrapper we do not call an undocumented verification API here.
         if not self.armoriq:
-            # No ArmorIQ client available for verification — fail closed.
-            raise ArmorIQException("No ArmorIQ client available to verify intent token. Refusing to execute protected action.")
+            raise ArmorIQException("No ArmorIQ client available; refusing to execute protected action.")
 
-        # This will raise IntentMismatchException or other ArmorIQException on failure.
-        verification = self.armoriq.verify_intent_token(
-            intent_token=intent_token,
-            mcp="mcp_scholarship_tool",
-            expected_action="submit_application",
-            params={"scholarship_id": scholarship_id, "student_id": student_id},
-        )
-
-        decision = verification.get("decision")
-
-        if decision != "ALLOW":
-            raise PermissionError("Protected action denied: ArmorIQ verification did not allow this action.")
+        # If the injected ArmorIQ client is a test shim that exposes
+        # `verify_intent_token`, use it for extra verification. Otherwise,
+        # rely on the orchestrator having performed the invocation and
+        # pass an explicit `armoriq_decision` (defense-in-depth).
+        if hasattr(self.armoriq, "verify_intent_token"):
+            verification = self.armoriq.verify_intent_token(
+                intent_token=intent_token,
+                mcp="mcp_scholarship_tool",
+                expected_action="submit_application",
+                params={"scholarship_id": scholarship_id, "student_id": student_id},
+            )
+            decision = verification.get("decision")
+            if decision != "ALLOW":
+                raise PermissionError("Protected action denied: ArmorIQ verification did not allow this action.")
+        else:
+            if armoriq_decision != "ALLOW":
+                raise PermissionError("Protected action denied: orchestrator did not receive ALLOW from ArmorIQ.")
 
         result = self.service.submit_application(
             student_id=student_id,
