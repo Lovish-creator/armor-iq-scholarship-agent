@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScholarShield AI — Live ArmorIQ Platform API & Document Verification</title>
+    <title>ScholarShield AI — Live Gemini Reasoning & ArmorIQ Governance</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -14,12 +14,12 @@
             <div class="brand">
                 <div class="shield-logo">🛡️</div>
                 <div class="brand-text">
-                    <h1>ScholarShield <span class="badge-armoriq">Live ArmorIQ Pro API Active</span></h1>
-                    <p class="tagline">Real-Time Autonomous Internet Discovery, Document Verification & Cryptographic Governance</p>
+                    <h1>ScholarShield <span class="badge-armoriq">Live Gemini 3.6 & ArmorIQ Pro Active</span></h1>
+                    <p class="tagline">Dynamic User Registration, Live Gemini Reasoning & Cryptographic ArmorIQ Governance</p>
                 </div>
             </div>
             <div class="status-pills">
-                <span class="pill pill-green" id="web-status"><span class="dot"></span> Live Web Search: Enabled</span>
+                <span class="pill pill-green" id="web-status"><span class="dot"></span> Live Gemini LLM: Reasoning</span>
                 <span class="pill pill-purple" id="armoriq-status"><span class="dot"></span> ArmorIQ Key: ak_live_f247...</span>
             </div>
         </header>
@@ -30,7 +30,7 @@
             <section class="card panel-setup">
                 <div class="card-header">
                     <h2>🎯 Order the Autonomous Agent</h2>
-                    <p class="tagline">Specify profile parameters, order live web search, and upload required documents.</p>
+                    <p class="tagline">Enter your real student profile details to dynamically register and order live search.</p>
                 </div>
 
                 <form id="order-form" onsubmit="event.preventDefault(); triggerAgentWorkflow();">
@@ -103,12 +103,12 @@
                             </label>
                         </div>
                         <p class="toggle-desc">
-                            When checked, the Agent attempts to submit an out-of-scope Private Foundation scheme found on the web outside user's authorized Punjab Government intent boundary.
+                            When checked, the Agent attempts to submit an out-of-scope Private Foundation scheme found on the web outside user's authorized intent boundary.
                         </p>
                     </div>
 
                     <button type="submit" class="btn-primary" id="run-btn">
-                        🌐 Execute Governed Agent Workflow
+                        🌐 Register & Execute Governed Agent Workflow
                     </button>
                 </form>
 
@@ -144,11 +144,20 @@
                 </div>
             </section>
 
-            <!-- Right Column: ArmorIQ API Key Telemetry Box & Stream -->
+            <!-- Right Column: Live Gemini Reasoning, ArmorIQ Telemetry & Stream -->
             <section class="card panel-execution">
                 <div class="card-header flex-between">
-                    <h2>⚡ Live ArmorIQ API Platform Telemetry</h2>
+                    <h2>⚡ Live Reasoning Stream & Governance Execution</h2>
                     <span class="badge-live" id="workflow-badge">Idle</span>
+                </div>
+
+                <!-- LIVE GEMINI 3.6 FLASH LLM REASONING BOX -->
+                <div class="gemini-reasoning-box hidden" id="gemini-reasoning-box" style="background:#0f172a; border:1px solid #3b82f6; border-radius:12px; padding:18px; margin-bottom:20px; box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);">
+                    <h3 style="font-size:0.95rem; color:#60a5fa; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                        <span>🧠 GEMINI 3.6 FLASH LIVE LLM REASONING THOUGHTS</span>
+                        <span class="badge-subtle" style="background:rgba(59,130,246,0.2); color:#93c5fd; padding:2px 8px; border-radius:12px;">Gemini 3.6 Flash Active</span>
+                    </h3>
+                    <div id="gemini-reasoning-text" style="font-size:0.85rem; color:#cbd5e1; line-height:1.6; white-space:pre-wrap; background:rgba(0,0,0,0.3); padding:12px; border-radius:8px;">Analyzing student profile...</div>
                 </div>
 
                 <!-- LIVE ARMORIQ API KEY TELEMETRY INSPECTOR -->
@@ -172,7 +181,7 @@
                         <h3 style="font-size:1.05rem;">MANDATORY DOCUMENT DEMANDED BY PORTAL</h3>
                     </div>
                     <div class="alert-body" style="font-size:0.88rem;">
-                        <p style="margin-bottom:8px;">The agent checked eligibility for <strong>Punjab Engineering Scholarship</strong>, but found a missing document:</p>
+                        <p style="margin-bottom:8px;">The agent checked eligibility for <strong>State Engineering Scholarship</strong>, but found a missing document:</p>
                         <p style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; color:#fcd34d; font-family:'JetBrains Mono', monospace;">
                             ⚠️ MISSING DOCUMENT REQUIRED: <span id="demanded-doc-name">income_certificate.pdf</span>
                         </p>
@@ -190,7 +199,7 @@
                     </div>
                     <div class="alert-body">
                         <p><strong>Attempted Action:</strong> <code id="alert-action">submit_application</code></p>
-                        <p><strong>Target Scholarship:</strong> <code id="alert-target">SCH-WEB-002 (Private Award)</code></p>
+                        <p><strong>Target Scholarship:</strong> <code id="alert-target">SCH-PRV-GLOBAL-03 (Private Award)</code></p>
                         <p><strong>ArmorIQ Decision:</strong> <span class="badge-blocked">BLOCKED</span></p>
                         <p><strong>Reason:</strong> <span id="alert-reason">Target action violates signed user intent constraint ('government' constraint required).</span></p>
                         <div class="proof-badge-box">
@@ -209,7 +218,7 @@
                 <div class="timeline-container">
                     <div class="timeline-header">Execution Timeline & MCP Tool Stream</div>
                     <ul class="timeline-list" id="timeline-list">
-                        <li class="timeline-placeholder">Ready to execute. Enter your command order on the left and click 'Execute Governed Agent Workflow'.</li>
+                        <li class="timeline-placeholder">Ready to execute. Enter your command order on the left and click 'Register & Execute Governed Agent Workflow'.</li>
                     </ul>
                 </div>
             </section>

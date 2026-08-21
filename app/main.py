@@ -1,4 +1,5 @@
 import uvicorn
+import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -26,10 +27,12 @@ orchestrator = ScholarshipAgentOrchestrator()
 service = ScholarshipService()
 
 class WorkflowRunRequest(BaseModel):
+    student_name: str = "Gurpreet Singh"
     raw_prompt: str = "Find government engineering scholarships in Punjab I am eligible for and apply."
     scholarship_type: str = "government"
     target_state: str = "Punjab"
     target_field: str = "Engineering"
+    annual_income: int = 450000
     simulate_out_of_scope_violation: bool = False
     simulate_missing_document: bool = False
 
@@ -48,13 +51,32 @@ def read_root():
 
 @app.post("/api/agent/run", response_model=AgentRunSummary)
 def run_agent_workflow(req: WorkflowRunRequest):
+    # Dynamically register user identity in database for the entered state & name!
+    try:
+        with httpx.Client(timeout=5.0) as http_client:
+            http_client.post(
+                "http://127.0.0.1:8001/api/student/register",
+                json={
+                    "student_id": "student-demo-001",
+                    "name": req.student_name,
+                    "education": req.target_field,
+                    "state": req.target_state,
+                    "annual_income": req.annual_income,
+                    "category": "General"
+                }
+            )
+    except Exception as e:
+        pass
+
     intent = StudentIntent(
-        intent_id=f"intent-demo-{req.scholarship_type}-{req.target_state.lower()}",
+        intent_id=f"intent-{req.target_state.lower().replace(' ', '-')}",
         user_id="student-demo-001",
+        user_name=req.student_name,
         raw_prompt=req.raw_prompt,
         scholarship_type=req.scholarship_type,
         target_state=req.target_state,
-        target_field=req.target_field
+        target_field=req.target_field,
+        annual_income=req.annual_income
     )
     
     summary = orchestrator.run_agent_workflow(

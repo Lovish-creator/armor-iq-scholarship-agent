@@ -3,11 +3,13 @@ from typing import List, Dict, Any, Optional
 
 class StudentIntent(BaseModel):
     intent_id: str
-    user_id: str = "student-demo-001"
+    user_id: str = "user-custom"
+    user_name: str = "Gurpreet Singh"
     raw_prompt: str
     scholarship_type: str = "government"  # "government", "private", "all"
     target_state: str = "Punjab"
     target_field: str = "Engineering"
+    annual_income: int = 450000
     must_be_eligible_only: bool = True
     requires_human_approval_before_submit: bool = True
 
@@ -22,14 +24,16 @@ class ExecutionPlan(BaseModel):
     goal: str
     prompt: str
     user_id: str
+    user_name: str = "Gurpreet Singh"
+    gemini_reasoning: Optional[str] = None
     constraints: Dict[str, Any]
     steps: List[PlanStep]
 
 class WorkflowStepResult(BaseModel):
     step_id: int
     action: str
-    status: str  # "SUCCESS", "BLOCKED", "FAILED"
-    armoriq_decision: str  # "ALLOW", "BLOCK", "HOLD"
+    status: str
+    armoriq_decision: str
     executed: bool
     details: Dict[str, Any]
     error_message: Optional[str] = None
@@ -37,11 +41,13 @@ class WorkflowStepResult(BaseModel):
 class AgentRunSummary(BaseModel):
     intent_id: str
     user_id: str
-    status: str  # "COMPLETED", "PARTIAL_BLOCKED", "FAILED"
+    user_name: str
+    status: str
     total_steps: int
     completed_steps: int
     blocked_steps: int
     intent_token: Optional[str] = None
+    gemini_reasoning: Optional[str] = None
     armoriq_telemetry: Optional[Dict[str, Any]] = None
     step_results: List[WorkflowStepResult]
     proof_of_non_execution: Dict[str, Any]

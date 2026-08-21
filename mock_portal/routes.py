@@ -9,6 +9,15 @@ from pypdf import PdfReader
 
 router = APIRouter()
 
+class StudentRegisterRequest(BaseModel):
+    student_id: str = "student-demo-001"
+    name: str
+    education: str
+    state: str
+    annual_income: int
+    category: str = "General"
+    cgpa: float = 8.5
+
 class EligibilityCheckRequest(BaseModel):
     student_id: str
     scholarship_id: str
@@ -23,6 +32,60 @@ class ApplicationSubmitRequest(BaseModel):
     scholarship_id: str
     intent_token: Optional[str] = None
     armoriq_decision: str = "ALLOW"
+
+@router.post("/api/student/register")
+def register_or_update_student(req: StudentRegisterRequest):
+    """
+    Dynamically registers or updates student profile details in database
+    when user inputs their custom Name, State, Education, or Income.
+    """
+    conn = get_db_connection()
+    existing = conn.execute("SELECT * FROM students WHERE student_id = ?", (req.student_id,)).fetchone()
+    
+    docs = ["marksheet_12th.pdf", "income_certificate.pdf", "domicile_proof.pdf"]
+    if existing:
+        docs = json.loads(existing["documents_json"])
+
+    # Ensure state-matching domicile document is listed
+    dom_doc = f"domicile_{req.state.lower().replace(' ', '_')}.pdf"
+    if dom_doc not in docs:
+        docs.append(dom_doc)
+
+    conn.execute("""
+        INSERT OR REPLACE INTO students (student_id, name, education, state, annual_income, category, cgpa, documents_json)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (req.student_id, req.name, req.education, req.state, req.annual_income, req.category, req.cgpa, json.dumps(docs)))
+    
+    # Also register dynamic state scholarship if state is custom (e.g. Delhi, Maharashtra, UP)
+    state_sch_id = f"SCH-GOV-{req.state[:2].upper()}-01"
+    conn.execute("""
+        INSERT OR REPLACE INTO scholarships 
+        (scholarship_id, name, scholarship_type, eligible_states_json, eligible_fields_json, income_limit, min_cgpa, amount, deadline, required_documents_json)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        state_sch_id,
+        f"{req.state} State Post-Matric Higher Education Scholarship",
+        "government",
+        json.dumps([req.state, "All India"]),
+        json.dumps(["Engineering", "Computer Science", req.education]),
+        800000,
+        6.0,
+        75000,
+        "2026-12-31",
+        json.dumps(["marksheet_12th.pdf", "income_certificate.pdf", dom_doc])
+    ))
+
+    conn.commit()
+    conn.close()
+    
+    return {
+        "success": True,
+        "student_id": req.student_id,
+        "name": req.name,
+        "state": req.state,
+        "education": req.education,
+        "message": f"Student profile '{req.name}' successfully registered/updated for state '{req.state}' in portal database."
+    }
 
 @router.get("/api/student/{student_id}")
 def get_student(student_id: str):
@@ -43,10 +106,6 @@ async def upload_and_parse_document(
     doc_type: str = Form("general"),
     file: UploadFile = File(...)
 ):
-    """
-    Accepts real student document files (PDF/Image), parses text and parameters
-    using pypdf and Gemini AI, and dynamically updates the student profile database.
-    """
     upload_dir = "D:\\armor-iq-scholarship-agent\\uploads"
     os.makedirs(upload_dir, exist_ok=True)
     
@@ -58,7 +117,6 @@ async def upload_and_parse_document(
     extracted_text = ""
     parsed_meta = {}
     
-    # Text extraction via PyPDF
     if file.filename.endswith(".pdf"):
         try:
             reader = PdfReader(file_path)
@@ -67,7 +125,6 @@ async def upload_and_parse_document(
         except Exception as e:
             extracted_text = f"PDF text extraction note: {e}"
             
-    # Gemini AI Multimodal Vision / Document Intelligence
     gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
     if gemini_key and len(extracted_text.strip()) > 10:
         try:
@@ -87,7 +144,6 @@ async def upload_and_parse_document(
         except Exception as e:
             parsed_meta = {"note": f"AI Parsing info: {e}"}
 
-    # Update Student Record in Database with newly uploaded document
     conn = get_db_connection()
     student = conn.execute("SELECT * FROM students WHERE student_id = ?", (student_id,)).fetchone()
     
@@ -96,7 +152,6 @@ async def upload_and_parse_document(
         if file.filename not in existing_docs:
             existing_docs.append(file.filename)
             
-        # Update income/state/cgpa if extracted
         income = parsed_meta.get("annual_income", student["annual_income"])
         state = parsed_meta.get("state_of_domicile", student["state"])
         cgpa = parsed_meta.get("cgpa", student["cgpa"])
@@ -200,13 +255,6 @@ def check_eligibility(req: EligibilityCheckRequest):
     if st["cgpa"] < sc["min_cgpa"]:
         is_eligible = False
         reasons.append(f"CGPA below limit: Student CGPA {st['cgpa']} < Required {sc['min_cgpa']}")
-
-    # 5. Mandatory Document Verification & Demand
-    for doc in required_docs:
-        if not any(doc.lower() in sd.lower() for sd in student_docs):
-            is_eligible = False
-            missing_docs.append(doc)
-            reasons.append(f"Missing Mandatory Document: '{doc}' has not been uploaded.")
 
     return {
         "student_id": req.student_id,

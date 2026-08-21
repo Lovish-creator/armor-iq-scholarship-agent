@@ -23,7 +23,6 @@ async function handleDocumentUpload() {
     const fileInput = document.getElementById("doc-file");
     const docTypeSelect = document.getElementById("doc-type");
     const uploadBtn = document.getElementById("upload-btn");
-    const uploadLog = document.getElementById("upload-log");
 
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
         alert("Please select a file to upload.");
@@ -83,7 +82,7 @@ async function triggerAgentWorkflow() {
     const studentName = document.getElementById("student-name") ? document.getElementById("student-name").value : "Gurpreet Singh";
     const studentEdu = document.getElementById("student-edu") ? document.getElementById("student-edu").value : "B.Tech Computer Science";
     const targetState = document.getElementById("target-state") ? document.getElementById("target-state").value : "Punjab";
-    const annualIncome = document.getElementById("annual-income") ? document.getElementById("annual-income").value : "450000";
+    const annualIncome = document.getElementById("annual-income") ? parseInt(document.getElementById("annual-income").value) : 450000;
     const scholarshipType = document.getElementById("scholarship-type") ? document.getElementById("scholarship-type").value : "government";
     const rawPrompt = document.getElementById("raw-prompt") ? document.getElementById("raw-prompt").value : "Perform live search";
     
@@ -96,7 +95,7 @@ async function triggerAgentWorkflow() {
     
     if (runBtn) {
         runBtn.disabled = true;
-        runBtn.innerHTML = "⏳ Authenticating ArmorIQ Key & Executing...";
+        runBtn.innerHTML = "⏳ Gemini 3.6 Flash Reasoning & Authenticating ArmorIQ Key...";
     }
     
     if (workflowBadge) {
@@ -107,9 +106,10 @@ async function triggerAgentWorkflow() {
     safeShow("security-alert", false);
     safeShow("demand-alert", false);
     safeShow("web-results-box", false);
+    safeShow("gemini-reasoning-box", false);
     
     if (timelineList) {
-        timelineList.innerHTML = `<li class="timeline-placeholder">Connecting to ArmorIQ Platform API with key ak_live_f247...</li>`;
+        timelineList.innerHTML = `<li class="timeline-placeholder">Registering user '${studentName}' for state '${targetState}' and executing Gemini 3.6 Flash reasoning...</li>`;
     }
     
     try {
@@ -117,10 +117,12 @@ async function triggerAgentWorkflow() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
+                student_name: studentName,
                 raw_prompt: rawPrompt,
                 scholarship_type: scholarshipType,
                 target_state: targetState,
                 target_field: studentEdu,
+                annual_income: annualIncome,
                 simulate_out_of_scope_violation: simulateOutOfScope,
                 simulate_missing_document: simulateMissingDoc
             })
@@ -140,7 +142,7 @@ async function triggerAgentWorkflow() {
     } finally {
         if (runBtn) {
             runBtn.disabled = false;
-            runBtn.innerHTML = "🌐 Execute Governed Agent Workflow";
+            runBtn.innerHTML = "🌐 Register & Execute Governed Agent Workflow";
         }
     }
 }
@@ -154,7 +156,13 @@ function renderResults(summary) {
     if (timelineList) timelineList.innerHTML = "";
     if (webResultsList) webResultsList.innerHTML = "";
     
-    // Update Telemetry Box
+    // Render Gemini Live Reasoning Text
+    if (summary.gemini_reasoning) {
+        safeSetText("gemini-reasoning-text", summary.gemini_reasoning);
+        safeShow("gemini-reasoning-box", true);
+    }
+    
+    // Update ArmorIQ Telemetry Box
     if (summary.armoriq_telemetry) {
         const tel = summary.armoriq_telemetry;
         safeSetText("telemetry-key", tel.api_key_used || "ak_live_f247...");
@@ -184,9 +192,9 @@ function renderResults(summary) {
         tokenItem.className = "timeline-item";
         tokenItem.innerHTML = `
             <div class="step-circle success"></div>
-            <div class="step-title">🔑 ArmorIQ Production Intent Token Signed</div>
+            <div class="step-title">🔑 ArmorIQ Intent Token Signed for User: '${summary.user_name || 'Registered Student'}'</div>
             <div class="step-meta">API Key: ${summary.armoriq_telemetry ? summary.armoriq_telemetry.api_key_used : "ak_live_f247..."} • Token ID: ${summary.intent_token ? summary.intent_token.substring(0, 24) + "..." : "LIVE-TOKEN"}</div>
-            <div class="step-code">Signed Plan Constraints: { scholarship_type: 'government', state: 'Punjab' }</div>
+            <div class="step-code">Signed Plan Constraints: { student: '${summary.user_name}', state: '${summary.step_results[0] ? summary.step_results[0].details.scholarships[0].eligible_states[0] : 'Authorized'}' }</div>
         `;
         timelineList.appendChild(tokenItem);
     }
