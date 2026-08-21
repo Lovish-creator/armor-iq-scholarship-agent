@@ -1,0 +1,22 @@
+version: "1.0"
+agent_id: "scholarship-governed-agent-v1"
+environment: "development"
+
+policies:
+  - name: "scope_enforcement"
+    description: "Restrict scholarship submissions to authorized type and state"
+    rules:
+      - action: "submit_application"
+        condition: "inputs.scholarship_type == 'government' && inputs.state == 'Punjab'"
+        effect: "ALLOW"
+      - action: "submit_application"
+        effect: "BLOCK"
+
+  - name: "eligibility_enforcement"
+    description: "Prevent submission for ineligible scholarships"
+    rules:
+      - action: "submit_application"
+        condition: "inputs.is_eligible == true"
+        effect: "ALLOW"
+      - action: "submit_application"
+        effect: "BLOCK"

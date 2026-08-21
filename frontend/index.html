@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScholarShield AI — Intent-Governed Autonomous Scholarship Agent</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Top Navigation -->
+        <header class="navbar">
+            <div class="brand">
+                <div class="shield-logo">🛡️</div>
+                <div class="brand-text">
+                    <h1>ScholarShield <span class="badge-armoriq">ArmorIQ Governed</span></h1>
+                    <p class="tagline">Autonomous Scholarship Agent with Cryptographic Intent Boundary Enforcement</p>
+                </div>
+            </div>
+            <div class="status-pills">
+                <span class="pill pill-green" id="portal-status"><span class="dot"></span> Mock Portal: Online</span>
+                <span class="pill pill-purple" id="armoriq-status"><span class="dot"></span> ArmorIQ Intent Proxy: Active</span>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Container -->
+        <main class="dashboard-grid">
+            <!-- Left Column: Student Profile & Intent Setup -->
+            <section class="card panel-setup">
+                <div class="card-header">
+                    <h2>👤 Synthetic Student Identity</h2>
+                    <span class="badge-subtle">Authenticated ID: student-demo-001</span>
+                </div>
+                <div class="student-profile-box">
+                    <div class="profile-row">
+                        <span class="label">Name:</span>
+                        <span class="valueHighlight">Gurpreet Singh</span>
+                    </div>
+                    <div class="profile-row">
+                        <span class="label">Education:</span>
+                        <span class="value">B.Tech Computer Science</span>
+                    </div>
+                    <div class="profile-row">
+                        <span class="label">State of Domicile:</span>
+                        <span class="value">Punjab</span>
+                    </div>
+                    <div class="profile-row">
+                        <span class="label">Annual Income:</span>
+                        <span class="value">₹4,50,000 (Low-Income Band)</span>
+                    </div>
+                    <div class="profile-row">
+                        <span class="label">Verified Documents:</span>
+                        <span class="doc-tags">
+                            <span class="tag">12th Marksheet</span>
+                            <span class="tag">Income Cert</span>
+                            <span class="tag">Punjab Domicile</span>
+                        </span>
+                    </div>
+                </div>
+
+                <hr class="divider">
+
+                <div class="card-header">
+                    <h2>🎯 Student Intent & Authority Constraints</h2>
+                </div>
+                <form id="intent-form" onsubmit="event.preventDefault(); triggerAgentWorkflow();">
+                    <div class="form-group">
+                        <label for="raw-prompt">Natural Instruction:</label>
+                        <textarea id="raw-prompt" rows="3" class="input-text">Find government engineering scholarships in Punjab I am eligible for and apply.</textarea>
+                    </div>
+
+                    <div class="grid-2col">
+                        <div class="form-group">
+                            <label for="scholarship-type">Target Type:</label>
+                            <select id="scholarship-type" class="input-select">
+                                <option value="government" selected>Government Scholarships Only</option>
+                                <option value="private">Private Scholarships Only</option>
+                                <option value="all">All Available</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="target-state">Authorized State:</label>
+                            <select id="target-state" class="input-select">
+                                <option value="Punjab" selected>Punjab</option>
+                                <option value="Maharashtra">Maharashtra</option>
+                                <option value="All India">All India</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Security Attack Scenario Toggle -->
+                    <div class="attack-toggle-box">
+                        <div class="toggle-header">
+                            <input type="checkbox" id="simulate-out-of-scope" class="toggle-checkbox">
+                            <label for="simulate-out-of-scope" class="toggle-label">
+                                <strong>⚠️ Simulate Autonomous Agent Intent Drift Attack</strong>
+                            </label>
+                        </div>
+                        <p class="toggle-desc">
+                            When enabled, the Agent autonomously attempts to submit an out-of-scope Private Scholarship (Global Tech Award) outside user's authorized Punjab Government intent boundary.
+                        </p>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="run-btn">
+                        🚀 Launch Governed Workflow
+                    </button>
+                </form>
+            </section>
+
+            <!-- Right Column: Live Execution & ArmorIQ Governance Stream -->
+            <section class="card panel-execution">
+                <div class="card-header flex-between">
+                    <h2>⚡ Live Execution & Governance Log</h2>
+                    <span class="badge-live" id="workflow-badge">Idle</span>
+                </div>
+
+                <!-- Proof of Non-Execution Banner -->
+                <div class="proof-banner" id="proof-banner">
+                    <div class="proof-icon">🛡️</div>
+                    <div class="proof-content">
+                        <h4>ARMORIQ NON-EXECUTION VERIFICATION</h4>
+                        <p id="proof-text">Consequential Tool Execution Count: <strong>0 Un-authorized Submissions</strong></p>
+                    </div>
+                </div>
+
+                <!-- Security Violation Alert (Hidden by Default) -->
+                <div class="security-alert-box hidden" id="security-alert">
+                    <div class="alert-header">
+                        <span class="alert-icon">🚫</span>
+                        <h3>ARMORIQ GOVERNANCE SECURITY EVENT DETECTED</h3>
+                    </div>
+                    <div class="alert-body">
+                        <p><strong>Attempted Action:</strong> <code id="alert-action">submit_application</code></p>
+                        <p><strong>Target Target:</strong> <code id="alert-target">SCH-PRV-GLOBAL-03 (Private Scholarship)</code></p>
+                        <p><strong>ArmorIQ Decision:</strong> <span class="badge-blocked">BLOCKED</span></p>
+                        <p><strong>Reason:</strong> <span id="alert-reason">Target action exceeds user intent boundary ('government' constraint required).</span></p>
+                        <div class="proof-badge-box">
+                            🔒 <strong>Proof of Non-Execution:</strong> Tool call aborted. Scholarship Portal DB application submission count remained <strong>0</strong>.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step Execution Timeline -->
+                <div class="timeline-container">
+                    <div class="timeline-header">Execution Timeline & MCP Tool Dispatch</div>
+                    <ul class="timeline-list" id="timeline-list">
+                        <li class="timeline-placeholder">Ready to execute workflow. Configure intent parameters and click 'Launch Governed Workflow'.</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
