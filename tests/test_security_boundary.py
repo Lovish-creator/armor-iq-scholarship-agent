@@ -12,8 +12,9 @@ def test_tool_refuses_blocked_submission_and_fails_closed():
     plan = shim.capture_plan(llm="test", prompt="p", plan={})
     token = shim.get_intent_token(plan)
 
-    # Attempt to submit a private / out-of-scope scholarship — shim will treat as BLOCK
-    with pytest.raises(IntentMismatchException):
+    # Attempt to submit a private / out-of-scope scholarship — orchestration
+    # should refuse execution (defense-in-depth). Expect PermissionError.
+    with pytest.raises(PermissionError):
         tools.submit_application(
             student_id="student-demo-001",
             scholarship_id="SCH-PRV-GLOBAL-03",

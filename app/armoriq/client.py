@@ -108,11 +108,37 @@ class ArmorIQWrapperClient:
             if not callable(get_token):
                 raise ArmorIQException("ArmorIQ SDK get_intent_token API not available")
 
-            token_resp = get_token(plan_capture.raw_sdk_obj, validity_seconds)
-            if not token_resp or "token" not in token_resp:
+            # Call SDK correctly: `policy` is the second positional arg, so pass
+            # `validity_seconds` as a keyword to avoid accidentally sending an
+            # integer where a policy object is expected.
+            # Extract policy from the captured plan (SDK expects a policy object)
+            captured_policy = None
+            try:
+                captured_policy = getattr(plan_capture.raw_sdk_obj, "plan", {}).get("policy")
+            except Exception:
+                captured_policy = None
+
+            token_resp = get_token(
+                plan_capture.raw_sdk_obj,
+                policy=captured_policy,
+                validity_seconds=validity_seconds,
+            )
+
+            # SDK returns an `IntentToken` pydantic model instance on success.
+            if not token_resp:
                 raise InvalidTokenException("ArmorIQ issued no intent token")
 
-            return {"token_string": token_resp["token"], "token_id": token_resp.get("token_id") or token_resp.get("id"), "api_key_used": True, "provider": "ArmorIQ SDK", "raw": token_resp}
+            # Normalize response: keep the SDK object under `raw` and also
+            # return the object itself as `token_string` so callers can pass
+            # it directly into `invoke()` (the SDK accepts an IntentToken).
+            token_id = getattr(token_resp, "token_id", None) or getattr(token_resp, "plan_id", None)
+            return {
+                "token_string": token_resp,
+                "token_id": token_id,
+                "api_key_used": True,
+                "provider": "ArmorIQ SDK",
+                "raw": token_resp,
+            }
 
         except (InvalidTokenException, TokenExpiredException, IntentMismatchException, PolicyBlockedException):
             raise

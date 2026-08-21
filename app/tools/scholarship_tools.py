@@ -117,23 +117,13 @@ class ScholarshipMCPTools:
         if not self.armoriq:
             raise ArmorIQException("No ArmorIQ client available; refusing to execute protected action.")
 
-        # If the injected ArmorIQ client is a test shim that exposes
-        # `verify_intent_token`, use it for extra verification. Otherwise,
-        # rely on the orchestrator having performed the invocation and
-        # pass an explicit `armoriq_decision` (defense-in-depth).
-        if hasattr(self.armoriq, "verify_intent_token"):
-            verification = self.armoriq.verify_intent_token(
-                intent_token=intent_token,
-                mcp="mcp_scholarship_tool",
-                expected_action="submit_application",
-                params={"scholarship_id": scholarship_id, "student_id": student_id},
-            )
-            decision = verification.get("decision")
-            if decision != "ALLOW":
-                raise PermissionError("Protected action denied: ArmorIQ verification did not allow this action.")
-        else:
-            if armoriq_decision != "ALLOW":
-                raise PermissionError("Protected action denied: orchestrator did not receive ALLOW from ArmorIQ.")
+        # Defense-in-depth: only execute when the orchestrator explicitly
+        # supplied an ALLOW decision. Do NOT rely on undocumented SDK
+        # methods such as `verify_intent_token()` here; the orchestrator
+        # must perform the official `invoke()` through the SDK before
+        # reaching this protected method.
+        if armoriq_decision != "ALLOW":
+            raise PermissionError("Protected action denied: orchestrator did not receive ALLOW from ArmorIQ.")
 
         result = self.service.submit_application(
             student_id=student_id,
@@ -147,5 +137,4 @@ class ScholarshipMCPTools:
             "execution_result": result,
             "mcp_invoked": True,
             "protected_action_executed": True,
-            "armoriq_verification": verification,
         }
