@@ -1,19 +1,18 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
+.env
 .venv/
 venv/
-*.sqlite
-*.db
-
-# Environment & Secrets
-.env
-*.pem
-*.key
-
-# IDE & OS
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
 .vscode/
 .idea/
 .DS_Store
-Thumbs.db
+
+uploads/*
+!uploads/.gitkeep
+
+*.db
+*.sqlite
+*.sqlite3
