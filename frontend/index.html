@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScholarShield AI — Real Interactive Document & Governance Platform</title>
+    <title>ScholarShield AI — Real Live Internet Search & Governed Agent Platform</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -14,62 +14,98 @@
             <div class="brand">
                 <div class="shield-logo">🛡️</div>
                 <div class="brand-text">
-                    <h1>ScholarShield <span class="badge-armoriq">Live ArmorIQ & Gemini Vision Active</span></h1>
-                    <p class="tagline">Interactive Scholarship Platform with Real Document Intelligence & Cryptographic Governance</p>
+                    <h1>ScholarShield <span class="badge-armoriq">Live Web Search & ArmorIQ Engine Active</span></h1>
+                    <p class="tagline">Real-Time Autonomous Internet Discovery, Document Verification & Cryptographic Governance</p>
                 </div>
             </div>
             <div class="status-pills">
-                <span class="pill pill-green" id="portal-status"><span class="dot"></span> Real Document Engine: Active</span>
-                <span class="pill pill-purple" id="armoriq-status"><span class="dot"></span> Live ArmorIQ Pro API: Connected</span>
+                <span class="pill pill-green" id="web-status"><span class="dot"></span> Live Web Search: Enabled</span>
+                <span class="pill pill-purple" id="armoriq-status"><span class="dot"></span> ArmorIQ Pro Client: Connected</span>
             </div>
         </header>
 
         <!-- Main Dashboard Grid -->
         <main class="dashboard-grid">
-            <!-- Left Column: Student Profile, Real Doc Upload & Intent Setup -->
+            <!-- Left Column: Custom Agent Order Form & Real Document Upload -->
             <section class="card panel-setup">
-                <div class="card-header flex-between">
-                    <h2>👤 Interactive Student Identity</h2>
-                    <span class="badge-subtle">ID: student-demo-001</span>
+                <div class="card-header">
+                    <h2>🎯 Order the Autonomous Agent</h2>
+                    <p class="tagline">Specify your real profile parameters and order the agent to search the live web and apply.</p>
                 </div>
-                
-                <!-- Dynamic Profile Box -->
-                <div class="student-profile-box" id="profile-box">
-                    <div class="profile-row">
-                        <span class="label">Name:</span>
-                        <span class="valueHighlight" id="st-name">Gurpreet Singh</span>
+
+                <form id="order-form" onsubmit="event.preventDefault(); triggerAgentWorkflow();">
+                    <div class="grid-2col">
+                        <div class="form-group">
+                            <label for="student-name">Student Full Name:</label>
+                            <input type="text" id="student-name" class="input-text" value="Gurpreet Singh" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="student-edu">Field of Study / Degree:</label>
+                            <input type="text" id="student-edu" class="input-text" value="B.Tech Computer Science" required>
+                        </div>
                     </div>
-                    <div class="profile-row">
-                        <span class="label">Education:</span>
-                        <span class="value" id="st-edu">B.Tech Computer Science</span>
+
+                    <div class="grid-2col">
+                        <div class="form-group">
+                            <label for="target-state">Domicile State:</label>
+                            <select id="target-state" class="input-select">
+                                <option value="Punjab" selected>Punjab</option>
+                                <option value="Delhi">Delhi</option>
+                                <option value="Maharashtra">Maharashtra</option>
+                                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                <option value="All India">All India</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="annual-income">Annual Family Income (₹):</label>
+                            <input type="number" id="annual-income" class="input-text" value="450000" required>
+                        </div>
                     </div>
-                    <div class="profile-row">
-                        <span class="label">State of Domicile:</span>
-                        <span class="value" id="st-state">Punjab</span>
+
+                    <div class="grid-2col">
+                        <div class="form-group">
+                            <label for="scholarship-type">Target Category:</label>
+                            <select id="scholarship-type" class="input-select">
+                                <option value="government" selected>Government Schemes Only</option>
+                                <option value="private">Private Foundation Grants</option>
+                                <option value="all">All Web Schemes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="student-cgpa">Min CGPA / Marks %:</label>
+                            <input type="text" id="student-cgpa" class="input-text" value="8.5 CGPA" required>
+                        </div>
                     </div>
-                    <div class="profile-row">
-                        <span class="label">Annual Income:</span>
-                        <span class="value" id="st-income">₹4,50,000</span>
+
+                    <div class="form-group">
+                        <label for="raw-prompt">Agent Command Order:</label>
+                        <textarea id="raw-prompt" rows="3" class="input-text">Perform a live internet search for engineering scholarships in Punjab, verify my marksheet and income eligibility, prepare draft applications, and submit government scholarships automatically.</textarea>
                     </div>
-                    <div class="profile-row">
-                        <span class="label">CGPA / Marks:</span>
-                        <span class="value" id="st-cgpa">8.5 CGPA</span>
+
+                    <!-- Security Intent Boundary Drift Attack Toggle -->
+                    <div class="attack-toggle-box">
+                        <div class="toggle-header">
+                            <input type="checkbox" id="simulate-out-of-scope" class="toggle-checkbox">
+                            <label for="simulate-out-of-scope" class="toggle-label">
+                                <strong>⚠️ Simulate Autonomous Agent Scope Drift Attack</strong>
+                            </label>
+                        </div>
+                        <p class="toggle-desc">
+                            When checked, the Agent autonomously attempts to submit an out-of-scope Private Foundation scheme found on the web outside user's authorized Punjab Government intent boundary.
+                        </p>
                     </div>
-                    <div class="profile-row">
-                        <span class="label">Uploaded Documents:</span>
-                        <span class="doc-tags" id="st-docs">
-                            <span class="tag">marksheet_12th.pdf</span>
-                            <span class="tag">income_certificate.pdf</span>
-                        </span>
-                    </div>
-                </div>
+
+                    <button type="submit" class="btn-primary" id="run-btn">
+                        🌐 Execute Live Internet Search & Governed Workflow
+                    </button>
+                </form>
 
                 <hr class="divider">
 
                 <!-- REAL DOCUMENT UPLOAD BOX -->
                 <div class="card-header">
-                    <h2>📄 Real Document Upload & AI Intelligence</h2>
-                    <p class="tagline">Upload your real PDF / Image certificate to parse parameters using Gemini Vision & PyPDF</p>
+                    <h2>📄 Real Document Upload & AI Parsing</h2>
+                    <p class="tagline">Upload real PDF certificates to parse data using Gemini Vision & PyPDF</p>
                 </div>
                 <div class="doc-upload-box">
                     <form id="upload-form" onsubmit="event.preventDefault(); handleDocumentUpload();">
@@ -84,75 +120,26 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="doc-file">Select PDF / File:</label>
+                                <label for="doc-file">Select PDF File:</label>
                                 <input type="file" id="doc-file" class="input-text" accept=".pdf,.png,.jpg,.jpeg" required>
                             </div>
                         </div>
                         <button type="submit" class="btn-secondary" id="upload-btn">
-                            📤 Upload & Extract Document Data
+                            📤 Upload & Verify Document Data
                         </button>
                     </form>
                     <div class="upload-log hidden" id="upload-log"></div>
                 </div>
-
-                <hr class="divider">
-
-                <!-- INTENT SETUP FORM -->
-                <div class="card-header">
-                    <h2>🎯 Student Intent & Authority Constraints</h2>
-                </div>
-                <form id="intent-form" onsubmit="event.preventDefault(); triggerAgentWorkflow();">
-                    <div class="form-group">
-                        <label for="raw-prompt">Natural Language Instruction:</label>
-                        <textarea id="raw-prompt" rows="3" class="input-text">Find government engineering scholarships in Punjab I am eligible for and apply.</textarea>
-                    </div>
-
-                    <div class="grid-2col">
-                        <div class="form-group">
-                            <label for="scholarship-type">Target Type:</label>
-                            <select id="scholarship-type" class="input-select">
-                                <option value="government" selected>Government Scholarships Only</option>
-                                <option value="private">Private Scholarships Only</option>
-                                <option value="all">All Available</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="target-state">Authorized State:</label>
-                            <select id="target-state" class="input-select">
-                                <option value="Punjab" selected>Punjab</option>
-                                <option value="Maharashtra">Maharashtra</option>
-                                <option value="All India">All India</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Security Attack Scenario Toggle -->
-                    <div class="attack-toggle-box">
-                        <div class="toggle-header">
-                            <input type="checkbox" id="simulate-out-of-scope" class="toggle-checkbox">
-                            <label for="simulate-out-of-scope" class="toggle-label">
-                                <strong>⚠️ Simulate Autonomous Agent Intent Drift Attack</strong>
-                            </label>
-                        </div>
-                        <p class="toggle-desc">
-                            When enabled, the Agent autonomously attempts to submit an out-of-scope Private Scholarship (Global Tech Award) outside user's authorized Punjab Government intent boundary.
-                        </p>
-                    </div>
-
-                    <button type="submit" class="btn-primary" id="run-btn">
-                        🚀 Launch Governed Agent Workflow
-                    </button>
-                </form>
             </section>
 
-            <!-- Right Column: Interactive Document Demand & Live Execution Stream -->
+            <!-- Right Column: Live Web Results & Governance Timeline Stream -->
             <section class="card panel-execution">
                 <div class="card-header flex-between">
-                    <h2>⚡ Live Response Stream & Governance Verification</h2>
+                    <h2>⚡ Live Web Results & ArmorIQ Governance Stream</h2>
                     <span class="badge-live" id="workflow-badge">Idle</span>
                 </div>
 
-                <!-- Proof of Non-Execution Banner -->
+                <!-- Non-Execution Proof Banner -->
                 <div class="proof-banner" id="proof-banner">
                     <div class="proof-icon">🛡️</div>
                     <div class="proof-content">
@@ -161,19 +148,7 @@
                     </div>
                 </div>
 
-                <!-- DOCUMENT DEMAND NOTIFICATION (Shown when document is demanded) -->
-                <div class="demand-alert-box hidden" id="demand-alert">
-                    <div class="alert-header" style="color: #f59e0b;">
-                        <span class="alert-icon">📄</span>
-                        <h3>PORTAL DEMANDS MANDATORY DOCUMENT</h3>
-                    </div>
-                    <div class="alert-body">
-                        <p>Eligibility check requires document: <strong id="demanded-doc-name" style="color:#fcd34d;">income_certificate.pdf</strong></p>
-                        <p>Please upload the demanded document above to fulfill criteria verification.</p>
-                    </div>
-                </div>
-
-                <!-- Security Violation Alert (Shown when ArmorIQ blocks) -->
+                <!-- Security Violation Alert -->
                 <div class="security-alert-box hidden" id="security-alert">
                     <div class="alert-header">
                         <span class="alert-icon">🚫</span>
@@ -181,7 +156,7 @@
                     </div>
                     <div class="alert-body">
                         <p><strong>Attempted Action:</strong> <code id="alert-action">submit_application</code></p>
-                        <p><strong>Target Scholarship:</strong> <code id="alert-target">SCH-PRV-GLOBAL-03 (Private Award)</code></p>
+                        <p><strong>Target Scholarship:</strong> <code id="alert-target">SCH-WEB-002 (Private Award)</code></p>
                         <p><strong>ArmorIQ Decision:</strong> <span class="badge-blocked">BLOCKED</span></p>
                         <p><strong>Reason:</strong> <span id="alert-reason">Target action violates signed user intent constraint ('government' constraint required).</span></p>
                         <div class="proof-badge-box">
@@ -190,11 +165,17 @@
                     </div>
                 </div>
 
-                <!-- Step Execution Timeline -->
+                <!-- Live Discovered Web Scholarships View -->
+                <div class="web-results-box hidden" id="web-results-box" style="margin-bottom:20px;">
+                    <h3 style="font-size:0.95rem; margin-bottom:10px; color:#60a5fa;">🌐 Discovered Live Internet Schemes:</h3>
+                    <div id="web-results-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+                </div>
+
+                <!-- Execution Timeline -->
                 <div class="timeline-container">
                     <div class="timeline-header">Execution Timeline & MCP Tool Stream</div>
                     <ul class="timeline-list" id="timeline-list">
-                        <li class="timeline-placeholder">Ready to execute workflow. Configure intent parameters or upload documents above.</li>
+                        <li class="timeline-placeholder">Ready to execute. Enter your command order on the left and click 'Execute Live Internet Search'.</li>
                     </ul>
                 </div>
             </section>
