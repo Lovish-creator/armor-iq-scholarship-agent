@@ -39,10 +39,14 @@ async function handleDocumentUpload() {
             }
 
             uploadLog.innerHTML = `
-                ✅ <strong>Upload & Verification Success!</strong><br>
+                ✅ <strong>Upload & Document Verification Success!</strong><br>
                 File: <code>${data.filename}</code> | Type: <code>${data.doc_type}</code><br>
                 <div style="margin-top:6px;"><strong>AI Parsed Metadata:</strong><pre style="background:rgba(0,0,0,0.3); padding:6px; border-radius:6px;">${aiMetaFormatted}</pre></div>
             `;
+            
+            // Hide missing document demand banner if active
+            const demandAlert = document.getElementById("demand-alert");
+            if (demandAlert) demandAlert.classList.add("hidden");
         } else {
             uploadLog.innerHTML = `❌ Error: ${data.detail || "Upload failed."}`;
         }
@@ -50,7 +54,7 @@ async function handleDocumentUpload() {
         uploadLog.innerHTML = `❌ Upload Exception: ${err.message}`;
     } finally {
         uploadBtn.disabled = false;
-        uploadBtn.innerHTML = "📤 Upload & Verify Document Data";
+        uploadBtn.innerHTML = "📤 Upload & Fulfill Document Requirement";
     }
 }
 
@@ -62,19 +66,21 @@ async function triggerAgentWorkflow() {
     const scholarshipType = document.getElementById("scholarship-type").value;
     const rawPrompt = document.getElementById("raw-prompt").value;
     const simulateOutOfScope = document.getElementById("simulate-out-of-scope").checked;
+    const simulateMissingDoc = document.getElementById("simulate-missing-doc").checked;
     
     const runBtn = document.getElementById("run-btn");
     const workflowBadge = document.getElementById("workflow-badge");
     const timelineList = document.getElementById("timeline-list");
     const securityAlert = document.getElementById("security-alert");
+    const demandAlert = document.getElementById("demand-alert");
     const webResultsBox = document.getElementById("web-results-box");
-    const webResultsList = document.getElementById("web-results-list");
     
     runBtn.disabled = true;
-    runBtn.innerHTML = "⏳ Searching Live Web & Executing...";
+    runBtn.innerHTML = "⏳ Verifying Documents & ArmorIQ Governance...";
     workflowBadge.className = "badge-live";
-    workflowBadge.textContent = "Executing Live Web Search...";
+    workflowBadge.textContent = "Executing...";
     securityAlert.classList.add("hidden");
+    demandAlert.classList.add("hidden");
     webResultsBox.classList.add("hidden");
     timelineList.innerHTML = `<li class="timeline-placeholder">Searching the current web for ${targetState} ${studentEdu} scholarships...</li>`;
     
@@ -87,7 +93,8 @@ async function triggerAgentWorkflow() {
                 scholarship_type: scholarshipType,
                 target_state: targetState,
                 target_field: studentEdu,
-                simulate_out_of_scope_violation: simulateOutOfScope
+                simulate_out_of_scope_violation: simulateOutOfScope,
+                simulate_missing_document: simulateMissingDoc
             })
         });
         
@@ -102,7 +109,7 @@ async function triggerAgentWorkflow() {
         timelineList.innerHTML = `<li class="timeline-item"><div class="step-title" style="color:#ef4444;">Execution Error: ${err.message}</div></li>`;
     } finally {
         runBtn.disabled = false;
-        runBtn.innerHTML = "🌐 Execute Live Internet Search & Governed Workflow";
+        runBtn.innerHTML = "🌐 Execute Governed Agent Workflow";
     }
 }
 
@@ -110,6 +117,7 @@ function renderResults(summary) {
     const workflowBadge = document.getElementById("workflow-badge");
     const timelineList = document.getElementById("timeline-list");
     const securityAlert = document.getElementById("security-alert");
+    const demandAlert = document.getElementById("demand-alert");
     const proofText = document.getElementById("proof-text");
     const webResultsBox = document.getElementById("web-results-box");
     const webResultsList = document.getElementById("web-results-list");
@@ -129,18 +137,18 @@ function renderResults(summary) {
         workflowBadge.textContent = "🛡️ ArmorIQ Governance Block Triggered";
     }
     
-    // Add Token Minting Entry
+    // Add Token Entry
     const tokenItem = document.createElement("li");
     tokenItem.className = "timeline-item";
     tokenItem.innerHTML = `
         <div class="step-circle success"></div>
         <div class="step-title">🔑 ArmorIQ Production Intent Token Minted</div>
         <div class="step-meta">Signed Intent Token • ID: ${summary.intent_token ? summary.intent_token.substring(0, 24) + "..." : "LIVE-TOKEN"}</div>
-        <div class="step-code">Signed Plan Constraints: { scholarship_type: 'government', state: 'Punjab' }</div>
+        <div class="step-code">Signed Plan Constraints: { scholarship_type: 'government', state: 'Punjab', doc_check: 'STRICT' }</div>
     `;
     timelineList.appendChild(tokenItem);
     
-    // Render Step Results & Discovered Live Web Schemes
+    // Render Step Results
     summary.step_results.forEach(step => {
         const isBlocked = step.status === "BLOCKED";
         const item = document.createElement("li");
@@ -151,6 +159,16 @@ function renderResults(summary) {
             detailsFormatted = JSON.stringify(step.details, null, 2);
         } catch(e) {
             detailsFormatted = String(step.details);
+        }
+        
+        // Check for Missing Document Demand
+        if (step.action === "check_eligibility" && step.details.result) {
+            const res = step.details.result;
+            if (res.action_required === "DEMAND_DOCUMENT" || (res.missing_documents && res.missing_documents.length > 0)) {
+                const missingDocName = res.missing_documents ? res.missing_documents.join(", ") : "income_certificate.pdf";
+                document.getElementById("demanded-doc-name").textContent = missingDocName;
+                demandAlert.classList.remove("hidden");
+            }
         }
         
         // Render Live Discovered Web Schemes

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScholarShield AI — Real Live Internet Search & Governed Agent Platform</title>
+    <title>ScholarShield AI — Interactive Document Verification & ArmorIQ Governance</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -14,12 +14,12 @@
             <div class="brand">
                 <div class="shield-logo">🛡️</div>
                 <div class="brand-text">
-                    <h1>ScholarShield <span class="badge-armoriq">Live Web Search & ArmorIQ Engine Active</span></h1>
-                    <p class="tagline">Real-Time Autonomous Internet Discovery, Document Verification & Cryptographic Governance</p>
+                    <h1>ScholarShield <span class="badge-armoriq">ArmorIQ Governance & Doc Verification</span></h1>
+                    <p class="tagline">Interactive Document Demand, Live Web Search & Cryptographic Intent Verification</p>
                 </div>
             </div>
             <div class="status-pills">
-                <span class="pill pill-green" id="web-status"><span class="dot"></span> Live Web Search: Enabled</span>
+                <span class="pill pill-green" id="web-status"><span class="dot"></span> Doc Verification: Active</span>
                 <span class="pill pill-purple" id="armoriq-status"><span class="dot"></span> ArmorIQ Pro Client: Connected</span>
             </div>
         </header>
@@ -30,7 +30,7 @@
             <section class="card panel-setup">
                 <div class="card-header">
                     <h2>🎯 Order the Autonomous Agent</h2>
-                    <p class="tagline">Specify your real profile parameters and order the agent to search the live web and apply.</p>
+                    <p class="tagline">Specify profile parameters, order live web search, and upload required documents.</p>
                 </div>
 
                 <form id="order-form" onsubmit="event.preventDefault(); triggerAgentWorkflow();">
@@ -52,7 +52,6 @@
                                 <option value="Punjab" selected>Punjab</option>
                                 <option value="Delhi">Delhi</option>
                                 <option value="Maharashtra">Maharashtra</option>
-                                <option value="Uttar Pradesh">Uttar Pradesh</option>
                                 <option value="All India">All India</option>
                             </select>
                         </div>
@@ -82,21 +81,33 @@
                         <textarea id="raw-prompt" rows="3" class="input-text">Perform a live internet search for engineering scholarships in Punjab, verify my marksheet and income eligibility, prepare draft applications, and submit government scholarships automatically.</textarea>
                     </div>
 
-                    <!-- Security Intent Boundary Drift Attack Toggle -->
+                    <!-- TEST SCENARIO TOGGLES -->
+                    <div class="attack-toggle-box" style="background:rgba(245, 158, 11, 0.08); border-color:rgba(245, 158, 11, 0.4);">
+                        <div class="toggle-header">
+                            <input type="checkbox" id="simulate-missing-doc" class="toggle-checkbox">
+                            <label for="simulate-missing-doc" class="toggle-label" style="color:#fcd34d;">
+                                <strong>📄 Simulate Missing Document Demand (Triggers Upload Requirement)</strong>
+                            </label>
+                        </div>
+                        <p class="toggle-desc" style="color:#fbbf24;">
+                            When checked, the Agent halts eligibility and demands that you upload an Income Certificate PDF before submission can proceed.
+                        </p>
+                    </div>
+
                     <div class="attack-toggle-box">
                         <div class="toggle-header">
                             <input type="checkbox" id="simulate-out-of-scope" class="toggle-checkbox">
                             <label for="simulate-out-of-scope" class="toggle-label">
-                                <strong>⚠️ Simulate Autonomous Agent Scope Drift Attack</strong>
+                                <strong>⚠️ Simulate Agent Intent Drift Attack (Triggers ArmorIQ BLOCK)</strong>
                             </label>
                         </div>
                         <p class="toggle-desc">
-                            When checked, the Agent autonomously attempts to submit an out-of-scope Private Foundation scheme found on the web outside user's authorized Punjab Government intent boundary.
+                            When checked, the Agent attempts to submit an out-of-scope Private Foundation scheme found on the web outside user's authorized Punjab Government intent boundary.
                         </p>
                     </div>
 
                     <button type="submit" class="btn-primary" id="run-btn">
-                        🌐 Execute Live Internet Search & Governed Workflow
+                        🌐 Execute Governed Agent Workflow
                     </button>
                 </form>
 
@@ -104,8 +115,8 @@
 
                 <!-- REAL DOCUMENT UPLOAD BOX -->
                 <div class="card-header">
-                    <h2>📄 Real Document Upload & AI Parsing</h2>
-                    <p class="tagline">Upload real PDF certificates to parse data using Gemini Vision & PyPDF</p>
+                    <h2>📄 Real Document Upload & AI Verification</h2>
+                    <p class="tagline">Upload your real PDF certificates here to satisfy portal demands</p>
                 </div>
                 <div class="doc-upload-box">
                     <form id="upload-form" onsubmit="event.preventDefault(); handleDocumentUpload();">
@@ -113,10 +124,10 @@
                             <div class="form-group">
                                 <label for="doc-type">Document Type:</label>
                                 <select id="doc-type" class="input-select">
-                                    <option value="income_certificate">Income Certificate</option>
-                                    <option value="domicile_certificate">Domicile Proof</option>
-                                    <option value="marksheet">Marksheet / Transcript</option>
-                                    <option value="id_proof">Aadhaar / ID Card</option>
+                                    <option value="income_certificate">Income Certificate (PDF)</option>
+                                    <option value="domicile_certificate">Domicile Proof (PDF)</option>
+                                    <option value="marksheet">Marksheet / Transcript (PDF)</option>
+                                    <option value="id_proof">Aadhaar / ID Card (PDF)</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -125,30 +136,50 @@
                             </div>
                         </div>
                         <button type="submit" class="btn-secondary" id="upload-btn">
-                            📤 Upload & Verify Document Data
+                            📤 Upload & Fulfill Document Requirement
                         </button>
                     </form>
                     <div class="upload-log hidden" id="upload-log"></div>
                 </div>
             </section>
 
-            <!-- Right Column: Live Web Results & Governance Timeline Stream -->
+            <!-- Right Column: ArmorIQ Governance Inspector, Document Demand & Stream -->
             <section class="card panel-execution">
                 <div class="card-header flex-between">
-                    <h2>⚡ Live Web Results & ArmorIQ Governance Stream</h2>
+                    <h2>⚡ Live ArmorIQ Governance & Document Inspector</h2>
                     <span class="badge-live" id="workflow-badge">Idle</span>
                 </div>
 
-                <!-- Non-Execution Proof Banner -->
-                <div class="proof-banner" id="proof-banner">
-                    <div class="proof-icon">🛡️</div>
-                    <div class="proof-content">
-                        <h4>ARMORIQ PROOF OF NON-EXECUTION</h4>
-                        <p id="proof-text">Consequential Submissions: <strong>1 Approved</strong> | Blocked Unauthorized Attempts: <strong>0</strong></p>
+                <!-- ARMORIQ WHAT IS BEING CHECKED BOX -->
+                <div class="armoriq-inspector-box" style="background:#1a2233; border:1px solid #3b82f6; border-radius:12px; padding:16px; margin-bottom:20px;">
+                    <h3 style="font-size:0.9rem; color:#60a5fa; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
+                        <span>🔒</span> WHAT ARMORIQ IS CHECKING AT RUNTIME:
+                    </h3>
+                    <ul style="font-size:0.8rem; color:#cbd5e1; padding-left:20px; line-height:1.6;">
+                        <li><strong>1. Intent Scope Check:</strong> Verifies that <code>action == 'submit_application'</code> strictly matches signed constraint <code>scholarship_type == 'government'</code> and <code>state == 'Punjab'</code>.</li>
+                        <li><strong>2. Document Criteria Check:</strong> Verifies that mandatory documents (Income Cert, Domicile Proof) are uploaded and verified before submission tool call executes.</li>
+                        <li><strong>3. Cryptographic Token Proof:</strong> Checks signed Merkle Root hash and Elliptic Curve signature generated during plan capture.</li>
+                    </ul>
+                </div>
+
+                <!-- DOCUMENT DEMAND NOTIFICATION (Shown when document is demanded) -->
+                <div class="demand-alert-box hidden" id="demand-alert" style="background:rgba(245, 158, 11, 0.15); border:1px solid #f59e0b; border-radius:12px; padding:18px; margin-bottom:20px;">
+                    <div class="alert-header" style="color: #fcd34d;">
+                        <span class="alert-icon" style="font-size:1.4rem;">📄</span>
+                        <h3 style="font-size:1.05rem;">MANDATORY DOCUMENT DEMANDED BY PORTAL</h3>
+                    </div>
+                    <div class="alert-body" style="font-size:0.88rem;">
+                        <p style="margin-bottom:8px;">The agent checked eligibility for <strong>Punjab Engineering Scholarship</strong>, but found a missing document:</p>
+                        <p style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; color:#fcd34d; font-family:'JetBrains Mono', monospace;">
+                            ⚠️ MISSING DOCUMENT REQUIRED: <span id="demanded-doc-name">income_certificate.pdf</span>
+                        </p>
+                        <p style="margin-top:10px; color:#fbbf24;">
+                            👉 <strong>ACTION REQUIRED:</strong> Please select <strong>'Income Certificate (PDF)'</strong> on the left panel and click <strong>'Upload & Fulfill Document Requirement'</strong> to complete your application!
+                        </p>
                     </div>
                 </div>
 
-                <!-- Security Violation Alert -->
+                <!-- Security Violation Alert (Shown when ArmorIQ blocks) -->
                 <div class="security-alert-box hidden" id="security-alert">
                     <div class="alert-header">
                         <span class="alert-icon">🚫</span>
@@ -156,7 +187,7 @@
                     </div>
                     <div class="alert-body">
                         <p><strong>Attempted Action:</strong> <code id="alert-action">submit_application</code></p>
-                        <p><strong>Target Scholarship:</strong> <code id="alert-target">SCH-WEB-002 (Private Award)</code></p>
+                        <p><strong>Target Scholarship:</strong> <code id="alert-target">SCH-PRV-GLOBAL-03 (Private Award)</code></p>
                         <p><strong>ArmorIQ Decision:</strong> <span class="badge-blocked">BLOCKED</span></p>
                         <p><strong>Reason:</strong> <span id="alert-reason">Target action violates signed user intent constraint ('government' constraint required).</span></p>
                         <div class="proof-badge-box">
@@ -175,7 +206,7 @@
                 <div class="timeline-container">
                     <div class="timeline-header">Execution Timeline & MCP Tool Stream</div>
                     <ul class="timeline-list" id="timeline-list">
-                        <li class="timeline-placeholder">Ready to execute. Enter your command order on the left and click 'Execute Live Internet Search'.</li>
+                        <li class="timeline-placeholder">Ready to execute. Enter your command order on the left and click 'Execute Governed Agent Workflow'.</li>
                     </ul>
                 </div>
             </section>

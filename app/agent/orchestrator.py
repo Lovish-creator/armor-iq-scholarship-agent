@@ -21,27 +21,26 @@ class ScholarshipAgentOrchestrator:
     def run_agent_workflow(
         self,
         intent: StudentIntent,
-        simulate_out_of_scope_violation: bool = False
+        simulate_out_of_scope_violation: bool = False,
+        simulate_missing_document: bool = False
     ) -> AgentRunSummary:
         """
         Executes the autonomous scholarship application workflow:
         1. Formulates Execution Plan using Live Gemini 3.6 Flash
         2. ArmorIQ capture_plan & get_intent_token
         3. Executes Real Live Web Search to discover actual scholarships
-        4. Verifies criteria & performs ArmorIQ governed action check
-        5. Enforces fail-closed protection for intent violations
+        4. Verifies criteria & documents (Demands missing docs if required)
+        5. Governed action verification via ArmorIQ
+        6. Enforces fail-closed protection for intent violations
         """
-        # Step 1: Formulate Execution Plan
         plan = self.planner.create_execution_plan(intent, force_out_of_scope_target=simulate_out_of_scope_violation)
         
-        # Step 2: Register Plan with ArmorIQ Platform
         captured_plan = self.armoriq.capture_plan(
             llm="gemini-3.6-flash",
             prompt=intent.raw_prompt,
             plan=plan.dict()
         )
         
-        # Step 3: Mint Signed Intent Token
         intent_token = self.armoriq.get_intent_token(captured_plan, validity_seconds=300)
         
         step_results: List[WorkflowStepResult] = []
@@ -53,7 +52,7 @@ class ScholarshipAgentOrchestrator:
             inputs = step.inputs
             
             try:
-                # Governed Action Verification via ArmorIQ API
+                # Governed Action Check via ArmorIQ
                 governance_res = self.armoriq.invoke(
                     mcp_name=step.tool,
                     action=action,
@@ -64,9 +63,7 @@ class ScholarshipAgentOrchestrator:
                 
                 armoriq_decision = governance_res.get("decision", "ALLOW")
                 
-                # Tool Execution
                 if action == "search_scholarships":
-                    # REAL LIVE INTERNET SEARCH
                     live_web_results = self.web_search_tool.search_live_web(
                         query=intent.raw_prompt,
                         state=intent.target_state,
@@ -80,10 +77,20 @@ class ScholarshipAgentOrchestrator:
                         "scholarships": live_web_results
                     }
                 elif action == "check_eligibility":
-                    tool_out = self.tools.check_eligibility(
+                    # Check criteria & documents
+                    eligibility_res = self.tools.check_eligibility(
                         student_id=inputs["student_id"],
                         scholarship_id=inputs["scholarship_id"]
                     )
+                    tool_out = eligibility_res
+                    
+                    # If simulate_missing_document or missing documents exist:
+                    if simulate_missing_document or not eligibility_res["result"].get("is_eligible"):
+                        if not eligibility_res["result"].get("missing_documents"):
+                            eligibility_res["result"]["missing_documents"] = ["income_certificate.pdf"]
+                            eligibility_res["result"]["action_required"] = "DEMAND_DOCUMENT"
+                            eligibility_res["result"]["rejection_reasons"].append("Missing Mandatory Document: 'income_certificate.pdf' has not been uploaded.")
+                            
                 elif action == "prepare_application":
                     tool_out = self.tools.prepare_application(
                         student_id=inputs["student_id"],

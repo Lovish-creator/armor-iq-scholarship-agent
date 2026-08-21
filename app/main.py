@@ -31,6 +31,7 @@ class WorkflowRunRequest(BaseModel):
     target_state: str = "Punjab"
     target_field: str = "Engineering"
     simulate_out_of_scope_violation: bool = False
+    simulate_missing_document: bool = False
 
 @app.get("/")
 def read_root():
@@ -58,7 +59,8 @@ def run_agent_workflow(req: WorkflowRunRequest):
     
     summary = orchestrator.run_agent_workflow(
         intent=intent,
-        simulate_out_of_scope_violation=req.simulate_out_of_scope_violation
+        simulate_out_of_scope_violation=req.simulate_out_of_scope_violation,
+        simulate_missing_document=req.simulate_missing_document
     )
     return summary
 
