@@ -51,8 +51,7 @@ else:
 # endpoints are mounted on the same process at port 8000.
 portal_base = os.getenv("PORTAL_BASE_URL", "http://127.0.0.1:8001")
 if SINGLE_PORT:
-    portal_base = os.getenv("SINGLE_PORT_BASE_URL", "http://127.0.0.1:8000")
-
+    portal_base = os.getenv("SINGLE_PORT_BASE_URL", "http://127.0.0.1:8080")
 service = ScholarshipService(base_url=portal_base)
 
 # If single-port mode is enabled and the mock router is available, mount it
