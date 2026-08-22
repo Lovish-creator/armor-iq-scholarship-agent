@@ -162,7 +162,10 @@ if _MULTIPART_AVAILABLE:
         doc_type: str = Form("general"),
         file: UploadFile = File(...)
     ):
-        upload_dir = "D:\\armor-iq-scholarship-agent\\uploads"
+        upload_dir = os.getenv(
+            "SCHOLARSHIP_UPLOAD_DIR",
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads"),
+        )
         os.makedirs(upload_dir, exist_ok=True)
         
         file_path = os.path.join(upload_dir, file.filename)
