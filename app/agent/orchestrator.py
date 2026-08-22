@@ -703,6 +703,15 @@ class ScholarshipAgentOrchestrator:
         )
 
 
+        # Ensure the summary includes a serializable token string, not
+        # the SDK IntentToken object. Preserve token_id when available.
+        token_for_summary = None
+
+        if isinstance(intent_token, str):
+            token_for_summary = intent_token
+        else:
+            token_for_summary = getattr(intent_token, "token_id", None) or getattr(intent_token, "token_string", None)
+
         return AgentRunSummary(
             intent_id=intent.intent_id,
             user_id=intent.user_id,
@@ -711,7 +720,7 @@ class ScholarshipAgentOrchestrator:
             total_steps=len(plan.steps),
             completed_steps=completed_count,
             blocked_steps=blocked_count,
-            intent_token=intent_token,
+            intent_token=token_for_summary,
             gemini_reasoning=plan.gemini_reasoning,
             armoriq_telemetry=telemetry,
             step_results=step_results,

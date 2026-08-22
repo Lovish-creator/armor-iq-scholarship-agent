@@ -108,13 +108,18 @@ class ArmorIQWrapperClient:
             )
 
         try:
+            config_path = ROOT_DIR / "policies" / "armoriq.yaml"
 
-            self.client = ArmorIQClient(
-                api_key=self.api_key
+            if not config_path.exists():
+                raise ArmorIQException(
+                    f"ArmorIQ config not found: {config_path}"
+                )
+
+            self.client = ArmorIQClient.from_config(
+                str(config_path)
             )
 
         except Exception as exc:
-
             logger.exception(
                 "Failed to initialize ArmorIQ SDK"
             )
@@ -123,18 +128,9 @@ class ArmorIQWrapperClient:
                 f"Failed to initialize ArmorIQ SDK: {exc}"
             ) from exc
 
-        # Keep the latest captured plan.
         self._last_plan = None
-
-        # Keep the latest actual IntentToken object.
-        #
-        # DO NOT replace this with token_id.
         self._last_intent_token = None
 
-
-    # ========================================================
-    # CAPTURE PLAN
-    # ========================================================
 
     def capture_plan(
         self,

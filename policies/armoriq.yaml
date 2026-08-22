@@ -2,17 +2,24 @@ version: v1
 
 identity:
   api_key: $ARMORIQ_API_KEY
+  user_id: 5d2ea046-20fd-4605-ad88-cd3a5067dd7f
+  agent_id: eb106a0c-f528-4924-a60c-27be5960ea94
 
-environment: sandbox
+environment: production
 
-mcp_servers: []
+mcp_servers:
+  - id: scholarship
+    url: http://127.0.0.1:9000/mcp
+    auth:
+      type: none
+    description: Scholarship MCP server
 
 policy:
   allow:
-    - mcp_scholarship_tool.search_scholarships
-    - mcp_scholarship_tool.check_eligibility
-    - mcp_scholarship_tool.prepare_application
-    - mcp_scholarship_tool.submit_application
+    - scholarship.search_scholarships
+    - scholarship.check_eligibility
+    - scholarship.prepare_application
+    - scholarship.submit_application
   deny: []
 
 intent:
