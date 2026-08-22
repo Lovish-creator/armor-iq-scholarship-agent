@@ -67,10 +67,17 @@ class AgentPlanner:
         # GEMINI REASONING
         # =====================================================
 
+                # =====================================================
+        # OPTIONAL GEMINI REASONING
+        # =====================================================
+        #
+        # Gemini is NOT required for execution.
+        # The actual ExecutionPlan below is deterministic.
+        # If Gemini fails, the plan remains valid.
+        #
+
         if self.gemini_key:
-
             try:
-
                 from google import genai
 
                 client = genai.Client(
@@ -78,52 +85,47 @@ class AgentPlanner:
                 )
 
                 reasoning_prompt = (
-                    "You are the Gemini planning engine for "
-                    "ScholarShield.\n\n"
-
-                    "Analyze the student's scholarship request.\n\n"
-
-                    f"- Student Name: {intent.user_name}\n"
-                    f"- Domicile State: {intent.target_state}\n"
-                    f"- Field of Study: {intent.target_field}\n"
-                    f"- Annual Income: ₹{intent.annual_income}\n"
-                    f"- Scholarship Type: {final_scholarship_type}\n"
-                    f"- Selected Scholarship ID: "
-                    f"{final_scholarship_id}\n"
-                    f"- User Command: '{intent.raw_prompt}'\n\n"
-
-                    "Explain the authorized workflow in natural "
-                    "language, including scholarship discovery, "
-                    "eligibility verification, document checks, "
-                    "application preparation, and submission."
+                    "Analyze this scholarship request and briefly "
+                    "explain the authorized workflow.\n\n"
+                    f"Student: {intent.user_name}\n"
+                    f"State: {final_state}\n"
+                    f"Field: {intent.target_field}\n"
+                    f"Scholarship type: {final_scholarship_type}\n"
+                    f"Scholarship ID: {final_scholarship_id}\n"
+                    f"User request: {intent.raw_prompt}\n"
                 )
 
-                reasoning_resp = client.models.generate_content(
+                response = client.models.generate_content(
                     model="gemini-3.6-flash",
                     contents=reasoning_prompt,
                 )
 
-                gemini_reasoning_text = (
-                    reasoning_resp.text
-                    if reasoning_resp
-                    else None
-                )
-
-                if gemini_reasoning_text:
-                    logger.info(
-                        "Gemini reasoning generated: %s...",
-                        gemini_reasoning_text[:100],
-                    )
+                if response and response.text:
+                    gemini_reasoning_text = response.text
+                    logger.info("Gemini reasoning generated.")
 
             except Exception as exc:
-
                 logger.warning(
-                    "Live Gemini reasoning failed: %s",
+                    "Gemini unavailable. "
+                    "Continuing with deterministic ArmorIQ plan: %s",
                     exc,
                 )
 
-                gemini_reasoning_text = None
+                gemini_reasoning_text = (
+                    "Gemini unavailable. "
+                    "Execution plan generated deterministically."
+                )
 
+        else:
+            logger.info(
+                "No Gemini API key configured. "
+                "Using deterministic execution plan."
+            )
+
+            gemini_reasoning_text = (
+                "Gemini disabled. "
+                "Execution plan generated deterministically."
+            )
         # =====================================================
         # STEP 1 — SEARCH
         # =====================================================
