@@ -19,7 +19,9 @@ from app.armoriq.errors import (
 
 from app.tools.scholarship_tools import ScholarshipMCPTools
 
-from app.tools.live_web_search import LiveWebScholarshipSearchTool
+from app.tools.live_web_search import (
+    LiveWebScholarshipSearchTool,
+)
 
 
 class ScholarshipAgentOrchestrator:
@@ -35,17 +37,19 @@ class ScholarshipAgentOrchestrator:
             or ArmorIQWrapperClient()
         )
 
-        # Inject ArmorIQ client into the MCP tools so they can perform
-        # authoritative verification (defense-in-depth) before executing
-        # consequential protected actions.
         self.tools = (
             tools
-            or ScholarshipMCPTools(armoriq_client=self.armoriq)
+            or ScholarshipMCPTools(
+                armoriq_client=self.armoriq
+            )
         )
 
         self.planner = AgentPlanner()
 
-        self.web_search_tool = LiveWebScholarshipSearchTool()
+        self.web_search_tool = (
+            LiveWebScholarshipSearchTool()
+        )
+
 
     def run_agent_workflow(
         self,
@@ -54,18 +58,169 @@ class ScholarshipAgentOrchestrator:
         simulate_missing_document: bool = False,
     ) -> AgentRunSummary:
 
-        # ---------------------------------------------------------
-        # 1. Create execution plan
-        # ---------------------------------------------------------
+        # =====================================================
+        # 1. LIVE SCHOLARSHIP DISCOVERY
+        #
+        # IMPORTANT:
+        # This happens BEFORE ArmorIQ capture_plan().
+        # =====================================================
+
+        discovered_scholarships = []
+
+        try:
+
+            discovered_scholarships = (
+                self.web_search_tool.search_live_web(
+                    query=intent.raw_prompt,
+                    state=intent.target_state,
+                    field=intent.target_field,
+                    scholarship_type=intent.scholarship_type,
+                )
+            )
+
+        except Exception as exc:
+
+            discovered_scholarships = []
+
+            print(
+                f"Live scholarship search failed: {exc}"
+            )
+
+
+        # =====================================================
+        # 2. SELECT FINAL SCHOLARSHIP
+        # =====================================================
+
+        selected_scholarship = None
+
+        if discovered_scholarships:
+
+            for scholarship in discovered_scholarships:
+
+                if not isinstance(
+                    scholarship,
+                    dict,
+                ):
+                    continue
+
+                # ---------------------------------------------
+                # Match scholarship type
+                # ---------------------------------------------
+
+                if (
+                    scholarship.get(
+                        "scholarship_type"
+                    )
+                    != intent.scholarship_type
+                ):
+                    continue
+
+                # ---------------------------------------------
+                # Match state
+                # ---------------------------------------------
+
+                eligible_states = (
+                    scholarship.get(
+                        "eligible_states"
+                    )
+                    or []
+                )
+
+                if eligible_states:
+
+                    if (
+                        intent.target_state
+                        not in eligible_states
+                        and "All India"
+                        not in eligible_states
+                    ):
+                        continue
+
+                selected_scholarship = scholarship
+
+                break
+
+
+        # -----------------------------------------------------
+        # Fallback
+        # -----------------------------------------------------
+
+        if selected_scholarship is None:
+
+            if discovered_scholarships:
+
+                for scholarship in discovered_scholarships:
+
+                    if isinstance(
+                        scholarship,
+                        dict,
+                    ):
+
+                        selected_scholarship = scholarship
+                        break
+
+
+        # =====================================================
+        # 3. DETERMINE FINAL SCHOLARSHIP ID
+        # =====================================================
+
+        if selected_scholarship:
+
+            selected_scholarship_id = (
+                selected_scholarship.get(
+                    "scholarship_id"
+                )
+            )
+
+            selected_scholarship_type = (
+                selected_scholarship.get(
+                    "scholarship_type"
+                )
+                or intent.scholarship_type
+            )
+
+            selected_scholarship_state = (
+                intent.target_state
+            )
+
+        else:
+
+            selected_scholarship_id = (
+                f"SCH-GOV-"
+                f"{intent.target_state[:2].upper()}"
+                f"-01"
+            )
+
+            selected_scholarship_type = (
+                intent.scholarship_type
+            )
+
+            selected_scholarship_state = (
+                intent.target_state
+            )
+
+
+        # =====================================================
+        # 4. CREATE FINAL PLAN
+        #
+        # The selected scholarship ID is now embedded in the
+        # plan BEFORE ArmorIQ sees it.
+        # =====================================================
 
         plan = self.planner.create_execution_plan(
             intent,
-            force_out_of_scope_target=simulate_out_of_scope_violation,
+            force_out_of_scope_target=(
+                simulate_out_of_scope_violation
+            ),
+            scholarship_id=selected_scholarship_id,
+            scholarship_type=selected_scholarship_type,
+            scholarship_state=selected_scholarship_state,
         )
 
-        # ---------------------------------------------------------
-        # 2. Capture plan through ArmorIQ
-        # ---------------------------------------------------------
+
+        # =====================================================
+        # 5. CAPTURE FINAL PLAN WITH ARMORIQ
+        # =====================================================
 
         captured_plan = self.armoriq.capture_plan(
             llm="gemini-3.6-flash",
@@ -73,82 +228,136 @@ class ScholarshipAgentOrchestrator:
             plan=plan.dict(),
         )
 
-        # ---------------------------------------------------------
-        # 3. Obtain REAL ArmorIQ intent token (documented flow)
-        # ---------------------------------------------------------
 
-        # Obtain the intent token using the real client's documented API.
-        # For test shims that only implement `get_intent_token_details`,
-        # fall back to that method to extract the token string — this
-        # preserves test compatibility without reintroducing insecure
-        # session-derived tokens.
+        # =====================================================
+        # 6. GET REAL INTENT TOKEN
+        # =====================================================
+
         intent_token = None
         telemetry = None
 
-        get_token_fn = getattr(self.armoriq, "get_intent_token", None)
+        get_token_fn = getattr(
+            self.armoriq,
+            "get_intent_token",
+            None,
+        )
+
         if callable(get_token_fn):
+
             try:
-                intent_token = get_token_fn(captured_plan, validity_seconds=300)
+
+                intent_token = get_token_fn(
+                    captured_plan,
+                    validity_seconds=300,
+                )
+
             except TypeError:
-                # Shim may accept only (plan_capture)
-                intent_token = get_token_fn(captured_plan)
+
+                intent_token = get_token_fn(
+                    captured_plan
+                )
+
+
+        # -----------------------------------------------------
+        # IMPORTANT:
+        # Do NOT use token_string.
+        # Your new client returns the actual token object.
+        # -----------------------------------------------------
 
         if intent_token is None:
-            # Fallback to details-based API used by some test doubles
-            telemetry = self.armoriq.get_intent_token_details(
-                captured_plan,
-                validity_seconds=300,
-            )
-            intent_token = telemetry.get("token_string")
 
-        # If we haven't yet fetched telemetry metadata, do so now (safe)
+            telemetry = (
+                self.armoriq.get_intent_token_details(
+                    captured_plan,
+                    validity_seconds=300,
+                )
+            )
+
+            intent_token = telemetry.get(
+                "token"
+            )
+
+
+        # -----------------------------------------------------
+        # Get telemetry separately
+        # -----------------------------------------------------
+
         if telemetry is None:
+
             try:
-                telemetry = self.armoriq.get_intent_token_details(captured_plan, validity_seconds=300)
+
+                telemetry = (
+                    self.armoriq.get_intent_token_details(
+                        captured_plan,
+                        validity_seconds=300,
+                    )
+                )
+
             except Exception:
+
                 telemetry = None
 
-        # ---------------------------------------------------------
-        # 4. Execute workflow
-        # ---------------------------------------------------------
 
-        step_results: List[WorkflowStepResult] = []
+        # =====================================================
+        # 7. EXECUTE EXACT SIGNED PLAN
+        # =====================================================
+
+        step_results: List[
+            WorkflowStepResult
+        ] = []
 
         completed_count = 0
         blocked_count = 0
 
-        # Carry discovered scholarships between steps so eligibility/prep/submit
-        # can operate on actual discovered scholarship IDs rather than planner
-        # hardcoded placeholders.
-        discovered_scholarships = []
 
         for step in plan.steps:
 
             action = step.action
-            inputs = step.inputs
+
+            # -------------------------------------------------
+            # CRITICAL:
+            #
+            # These inputs came from the FINAL PLAN.
+            #
+            # NEVER modify them after capture_plan().
+            # -------------------------------------------------
+
+            inputs = dict(
+                step.inputs
+            )
+
 
             try:
 
-                # -------------------------------------------------
+                # =================================================
                 # ARMORIQ GOVERNANCE
-                # -------------------------------------------------
+                # =================================================
 
-                governance_res = self.armoriq.invoke(
-                    mcp=step.tool,
-                    action=action,
-                    intent_token=intent_token,
-                    params=inputs,
-                    user_email=f"{intent.user_id}@scholarshield.local",
+                governance_res = (
+                    self.armoriq.invoke(
+                        mcp=step.tool,
+                        action=action,
+                        intent_token=intent_token,
+                        params=inputs,
+                        user_email=(
+                            f"{intent.user_id}"
+                            "@scholarshield.local"
+                        ),
+                    )
                 )
 
-                armoriq_decision = governance_res.get(
-                    "decision",
-                    "ALLOW",
+
+                armoriq_decision = (
+                    governance_res.get(
+                        "decision",
+                        "BLOCK",
+                    )
                 )
 
-                # -------------------------------------------------
-                # HARD SECURITY BOUNDARY
-                # -------------------------------------------------
+
+                # =================================================
+                # ARMORIQ BLOCK
+                # =================================================
 
                 if armoriq_decision != "ALLOW":
 
@@ -159,150 +368,215 @@ class ScholarshipAgentOrchestrator:
                             step_id=step.step_id,
                             action=action,
                             status="BLOCKED",
-                            armoriq_decision=armoriq_decision,
+                            armoriq_decision=(
+                                armoriq_decision
+                            ),
                             executed=False,
                             details={
                                 "mcp_invoked": False,
                                 "protected_action_executed": False,
+                                "inputs": inputs,
                                 "reason": (
-                                    "ArmorIQ did not authorize "
-                                    "this action."
+                                    governance_res.get(
+                                        "error"
+                                    )
+                                    or
+                                    "ArmorIQ denied "
+                                    "the action."
                                 ),
                             },
                             error_message=(
-                                "ArmorIQ denied the action."
+                                governance_res.get(
+                                    "error"
+                                )
+                                or
+                                "ArmorIQ denied "
+                                "the action."
                             ),
                         )
                     )
 
-                    # VERY IMPORTANT:
-                    # NEVER call the protected tool here.
+                    # SECURITY BOUNDARY:
+                    #
+                    # Never execute the protected action
+                    # after ArmorIQ denies it.
 
                     continue
 
-                # -------------------------------------------------
-                # ALLOWED ACTIONS
-                # -------------------------------------------------
+
+                # =================================================
+                # STEP 1 — SEARCH
+                # =================================================
 
                 if action == "search_scholarships":
 
-                    live_web_results = (
-                        self.web_search_tool.search_live_web(
-                            query=intent.raw_prompt,
-                            state=intent.target_state,
-                            field=intent.target_field,
-                            scholarship_type=intent.scholarship_type,
-                        )
-                    )
-
-                    # Persist discovered scholarships for later steps
-                    discovered_scholarships = live_web_results
+                    # We already performed live discovery before
+                    # ArmorIQ plan capture.
+                    #
+                    # Do NOT perform a second discovery that could
+                    # change the signed plan.
 
                     tool_out = {
                         "tool": "search_scholarships",
-                        "search_type": "LIVE_INTERNET_SEARCH",
-                        "discovered_count": len(
-                            live_web_results
+                        "search_type": (
+                            "LIVE_INTERNET_SEARCH"
                         ),
-                        "scholarships": live_web_results,
+                        "discovered_count": len(
+                            discovered_scholarships
+                        ),
+                        "scholarships": (
+                            discovered_scholarships
+                        ),
                     }
+
+
+                # =================================================
+                # STEP 2 — ELIGIBILITY
+                # =================================================
 
                 elif action == "check_eligibility":
 
-                    # Choose scholarship_id from discovered search results
-                    scholarship_id = inputs.get("scholarship_id")
-                    chosen_id = None
-                    if discovered_scholarships:
-                        # Prefer an exact match if planner supplied one
-                        ids = [s.get("scholarship_id") for s in discovered_scholarships if isinstance(s, dict)]
-                        if scholarship_id and scholarship_id in ids:
-                            chosen_id = scholarship_id
-                        else:
-                            # Pick the first discovered candidate matching the requested type/state
-                            for s in discovered_scholarships:
-                                if not isinstance(s, dict):
-                                    continue
-                                if inputs.get("scholarship_type") and s.get("scholarship_type") != inputs.get("scholarship_type"):
-                                    continue
-                                if inputs.get("state") and s.get("eligible_states") and inputs.get("state") not in s.get("eligible_states") and "All India" not in s.get("eligible_states"):
-                                    continue
-                                chosen_id = s.get("scholarship_id")
-                                break
-                    if not chosen_id:
-                        chosen_id = scholarship_id
-
-                    eligibility_res = (
+                    tool_out = (
                         self.tools.check_eligibility(
-                            student_id=inputs["student_id"],
-                            scholarship_id=chosen_id,
+                            student_id=inputs[
+                                "student_id"
+                            ],
+                            scholarship_id=inputs[
+                                "scholarship_id"
+                            ],
                         )
                     )
 
-                    tool_out = eligibility_res
+
+                    # ------------------------------------------------
+                    # DEMO: missing document
+                    # ------------------------------------------------
 
                     if (
                         simulate_missing_document
-                        and not eligibility_res["result"].get(
+                        and not tool_out[
+                            "result"
+                        ].get(
                             "missing_documents"
                         )
                     ):
 
-                        eligibility_res["result"][
+                        tool_out[
+                            "result"
+                        ][
                             "missing_documents"
                         ] = [
                             "income_certificate.pdf"
                         ]
 
-                        eligibility_res["result"][
+                        tool_out[
+                            "result"
+                        ][
                             "action_required"
-                        ] = "DEMAND_DOCUMENT"
+                        ] = (
+                            "DEMAND_DOCUMENT"
+                        )
+
+
+                # =================================================
+                # STEP 3 — PREPARE APPLICATION
+                # =================================================
 
                 elif action == "prepare_application":
 
-                    sch_id = inputs.get("scholarship_id")
-                    # If search produced candidates, prefer that canonical id
-                    if discovered_scholarships and any(isinstance(s, dict) and s.get("scholarship_id") == sch_id for s in discovered_scholarships) is False:
-                        # Fallback to first discovered if planner id not present
-                        for s in discovered_scholarships:
-                            if isinstance(s, dict):
-                                sch_id = s.get("scholarship_id")
-                                break
-
                     tool_out = (
                         self.tools.prepare_application(
-                            student_id=inputs["student_id"],
-                            scholarship_id=sch_id,
+                            student_id=inputs[
+                                "student_id"
+                            ],
+                            scholarship_id=inputs[
+                                "scholarship_id"
+                            ],
                         )
                     )
 
+
+                # =================================================
+                # STEP 4 — SUBMIT APPLICATION
+                # =================================================
+
                 elif action == "submit_application":
 
-                    # Ensure submission targets a scholarship discovered earlier
-                    sch_id = inputs.get("scholarship_id")
-                    if discovered_scholarships:
-                        # If planner supplied an id and it appears in discovered, use it; otherwise pick first discovered
-                        ids = [s.get("scholarship_id") for s in discovered_scholarships if isinstance(s, dict)]
-                        if sch_id not in ids:
-                            sch_id = ids[0] if ids else sch_id
+                    # ------------------------------------------------
+                    # Defense-in-depth:
+                    #
+                    # submission must correspond to the SAME
+                    # scholarship checked in step 2.
+                    # ------------------------------------------------
 
-                    # Defense-in-depth: only submit if eligibility was verified earlier
+                    scholarship_id = inputs[
+                        "scholarship_id"
+                    ]
+
                     eligible = False
-                    for prev in step_results:
-                        if prev.action == "check_eligibility" and prev.details.get("result") and prev.details["result"].get("scholarship_id") == sch_id:
-                            eligible = prev.details["result"].get("is_eligible", False)
-                            break
+
+                    for previous in step_results:
+
+                        if (
+                            previous.action
+                            == "check_eligibility"
+                        ):
+
+                            result = (
+                                previous.details.get(
+                                    "result"
+                                )
+                            )
+
+                            if not result:
+                                continue
+
+                            previous_id = (
+                                result.get(
+                                    "scholarship_id"
+                                )
+                            )
+
+                            if (
+                                previous_id
+                                == scholarship_id
+                            ):
+
+                                eligible = bool(
+                                    result.get(
+                                        "is_eligible",
+                                        False,
+                                    )
+                                )
+
+                                break
+
 
                     if not eligible:
-                        raise IntentMismatchException("Cannot submit: scholarship not verified eligible or eligibility unknown")
+
+                        raise IntentMismatchException(
+                            "Cannot submit application: "
+                            "the exact scholarship in the "
+                            "signed plan was not verified "
+                            "as eligible."
+                        )
+
 
                     tool_out = (
                         self.tools.submit_application(
-                            student_id=inputs["student_id"],
-                            scholarship_id=sch_id,
+                            student_id=inputs[
+                                "student_id"
+                            ],
+                            scholarship_id=(
+                                inputs[
+                                    "scholarship_id"
+                                ]
+                            ),
                             intent_token=intent_token,
                             armoriq_decision="ALLOW",
                         )
                     )
+
 
                 else:
 
@@ -310,9 +584,10 @@ class ScholarshipAgentOrchestrator:
                         "status": "unknown_action"
                     }
 
-                # -------------------------------------------------
+
+                # =================================================
                 # SUCCESS
-                # -------------------------------------------------
+                # =================================================
 
                 step_results.append(
                     WorkflowStepResult(
@@ -327,19 +602,14 @@ class ScholarshipAgentOrchestrator:
 
                 completed_count += 1
 
-            # -----------------------------------------------------
-            # ARMORIQ INTENT MISMATCH
-            # -----------------------------------------------------
 
-            except IntentMismatchException as e:
+            # =====================================================
+            # INTENT MISMATCH
+            # =====================================================
+
+            except IntentMismatchException as exc:
 
                 blocked_count += 1
-
-                # CRITICAL:
-                # DO NOT CALL submit_application HERE.
-                #
-                # ArmorIQ denied the action.
-                # Therefore the protected MCP/tool must not execute.
 
                 step_results.append(
                     WorkflowStepResult(
@@ -349,20 +619,21 @@ class ScholarshipAgentOrchestrator:
                         armoriq_decision="BLOCK",
                         executed=False,
                         details={
-                            "error": str(e),
+                            "error": str(exc),
                             "inputs": inputs,
                             "mcp_invoked": False,
                             "protected_action_executed": False,
                         },
-                        error_message=str(e),
+                        error_message=str(exc),
                     )
                 )
 
-            # -----------------------------------------------------
+
+            # =====================================================
             # ARMORIQ ERROR
-            # -----------------------------------------------------
+            # =====================================================
 
-            except ArmorIQException as e:
+            except ArmorIQException as exc:
 
                 blocked_count += 1
 
@@ -374,33 +645,40 @@ class ScholarshipAgentOrchestrator:
                         armoriq_decision="BLOCK",
                         executed=False,
                         details={
-                            "error": str(e),
+                            "error": str(exc),
                             "inputs": inputs,
                             "mcp_invoked": False,
                             "protected_action_executed": False,
                         },
-                        error_message=str(e),
+                        error_message=str(exc),
                     )
                 )
 
-        # ---------------------------------------------------------
-        # 5. Verify non-execution
-        # ---------------------------------------------------------
+
+        # =====================================================
+        # 8. PROOF OF NON-EXECUTION
+        # =====================================================
 
         proof_res = {
             "proof_valid": False,
-            "note": "Unable to verify proof endpoint.",
+            "note": (
+                "Unable to verify proof endpoint."
+            ),
         }
 
         try:
 
-            with httpx.Client(timeout=5.0) as http_client:
+            with httpx.Client(
+                timeout=5.0
+            ) as http_client:
 
                 response = http_client.get(
-                    "http://127.0.0.1:8001/api/proof-of-non-execution"
+                    "http://127.0.0.1:8001/"
+                    "api/proof-of-non-execution"
                 )
 
                 if response.status_code == 200:
+
                     proof_res = response.json()
 
         except Exception as exc:
@@ -413,15 +691,26 @@ class ScholarshipAgentOrchestrator:
                 "error": str(exc),
             }
 
-        # ---------------------------------------------------------
-        # 6. Final status
-        # ---------------------------------------------------------
+
+        # =====================================================
+        # 9. FINAL STATUS
+        # =====================================================
 
         run_status = (
             "COMPLETED"
             if blocked_count == 0
             else "PARTIAL_BLOCKED"
         )
+
+
+        # Ensure the summary includes a serializable token string, not
+        # the SDK IntentToken object. Preserve token_id when available.
+        token_for_summary = None
+
+        if isinstance(intent_token, str):
+            token_for_summary = intent_token
+        else:
+            token_for_summary = getattr(intent_token, "token_id", None) or getattr(intent_token, "token_string", None)
 
         return AgentRunSummary(
             intent_id=intent.intent_id,
@@ -431,7 +720,7 @@ class ScholarshipAgentOrchestrator:
             total_steps=len(plan.steps),
             completed_steps=completed_count,
             blocked_steps=blocked_count,
-            intent_token=intent_token,
+            intent_token=token_for_summary,
             gemini_reasoning=plan.gemini_reasoning,
             armoriq_telemetry=telemetry,
             step_results=step_results,

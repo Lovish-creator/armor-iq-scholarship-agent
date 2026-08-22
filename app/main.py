@@ -1,6 +1,8 @@
 import uvicorn
 import httpx
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
@@ -30,6 +32,8 @@ app = FastAPI(
     version="1.0.0"
 )
 
+app.mount("/static", StaticFiles(directory="frontend"), name="static")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -47,8 +51,7 @@ else:
 # endpoints are mounted on the same process at port 8000.
 portal_base = os.getenv("PORTAL_BASE_URL", "http://127.0.0.1:8001")
 if SINGLE_PORT:
-    portal_base = os.getenv("SINGLE_PORT_BASE_URL", "http://127.0.0.1:8000")
-
+    portal_base = os.getenv("SINGLE_PORT_BASE_URL", "http://127.0.0.1:8080")
 service = ScholarshipService(base_url=portal_base)
 
 # If single-port mode is enabled and the mock router is available, mount it
@@ -72,16 +75,16 @@ class WorkflowRunRequest(BaseModel):
 
 @app.get("/")
 def read_root():
-    return {
-        "status": "online",
-        "service": "Intent-Governed Autonomous Scholarship Application Agent",
-        "governance_engine": "ArmorIQ Intent Engine",
-        "endpoints": {
-            "run_workflow": "/api/agent/run",
-            "audit_logs": "/api/audit-logs",
-            "proof_of_non_execution": "/api/proof-of-non-execution"
-        }
-    }
+    return FileResponse("frontend/index.html")
+
+@app.get("/styles.css")
+def serve_styles():
+    return FileResponse("frontend/styles.css")
+
+
+@app.get("/app.js")
+def serve_app_js():
+    return FileResponse("frontend/app.js")
 
 @app.post("/api/agent/run", response_model=AgentRunSummary)
 def run_agent_workflow(req: WorkflowRunRequest):

@@ -1,16 +1,30 @@
+import os
 import sqlite3
 import json
 from typing import List, Dict, Any, Optional
 
-DB_PATH = "D:\\armor-iq-scholarship-agent\\scholarship_portal.db"
+# Default location: alongside this file, inside the mock_portal package.
+# Override with SCHOLARSHIP_DB_PATH for a custom location (e.g. in CI or prod).
+DEFAULT_DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scholarship_portal.db")
+DB_PATH = os.getenv("SCHOLARSHIP_DB_PATH", DEFAULT_DB_PATH)
+
+_initialized = False
 
 def get_db_connection():
+    global _initialized
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
+    if not _initialized:
+        # Ensure schema exists before any caller tries to use the connection,
+        # since callers may reach this via the in-process fallback path
+        # (bypassing the FastAPI startup event that normally calls init_db()).
+        _ensure_schema(conn)
+        _initialized = True
     return conn
 
-def init_db():
-    conn = get_db_connection()
+def _ensure_schema(conn):
+    """Create all tables if they don't already exist. Safe to call repeatedly
+    and safe to call on every new connection (idempotent)."""
     cursor = conn.cursor()
 
     # Students table
@@ -70,6 +84,13 @@ def init_db():
             detail TEXT
         )
     """)
+    conn.commit()
+
+
+def init_db():
+    """Create schema (if needed) and (re)seed synthetic demo data."""
+    conn = get_db_connection()  # already ensures schema via get_db_connection()
+    cursor = conn.cursor()
 
     # Seed Synthetic Student
     cursor.execute("DELETE FROM students")

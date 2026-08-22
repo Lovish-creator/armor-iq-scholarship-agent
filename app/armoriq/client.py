@@ -1,12 +1,10 @@
 import os
 import logging
+import uuid
 from pathlib import Path
 from typing import Dict, Any, Optional
 
 from dotenv import load_dotenv
-
-ROOT_DIR = Path(__file__).resolve().parents[2]
-load_dotenv(ROOT_DIR / ".env")
 
 from app.armoriq.errors import (
     ArmorIQException,
@@ -16,200 +14,1174 @@ from app.armoriq.errors import (
     TokenExpiredException,
 )
 
+# ============================================================
+# ENVIRONMENT
+# ============================================================
+
+ROOT_DIR = Path(__file__).resolve().parents[2]
+
+load_dotenv(ROOT_DIR / ".env")
 
 logger = logging.getLogger("armoriq_client")
 
+
+# ============================================================
+# OFFICIAL ARMORIQ SDK
+# ============================================================
 
 try:
     from armoriq_sdk import ArmorIQClient
 
     HAS_OFFICIAL_SDK = True
 
-except Exception:
+except Exception as exc:
     ArmorIQClient = None
     HAS_OFFICIAL_SDK = False
 
-if HAS_OFFICIAL_SDK:
-    try:
-        from armoriq_sdk import exceptions as sdk_exceptions
-    except Exception:
-        sdk_exceptions = None
+    logger.warning(
+        "ArmorIQ SDK unavailable: %s",
+        exc,
+    )
 
+
+# SDK exception module
+try:
+    from armoriq_sdk import exceptions as sdk_exceptions
+except Exception:
+    sdk_exceptions = None
+
+
+# ============================================================
+# LOCAL DEMO TOKEN
+# ============================================================
+
+class LocalIntentToken:
+    """
+    Local token used ONLY when ARMORIQ_MODE=demo/local/mock.
+
+    This is not an ArmorIQ cryptographic token.
+    """
+
+    def __init__(
+        self,
+        plan_id: Optional[str],
+        validity_seconds: int = 300,
+    ):
+        self.token_id = f"demo-{uuid.uuid4().hex[:16]}"
+        self.plan_id = plan_id
+        self.validity_seconds = validity_seconds
+        self.provider = "ArmorIQ Local Demo"
+        self.demo = True
+
+    def __str__(self):
+        return self.token_id
+
+    def __repr__(self):
+        return (
+            f"LocalIntentToken("
+            f"token_id={self.token_id!r})"
+        )
+
+
+# ============================================================
+# PLAN CAPTURE RESULT
+# ============================================================
 
 class PlanCaptureResult:
-    def __init__(self, raw_sdk_obj: Any):
-        self.raw_sdk_obj = raw_sdk_obj
-        self.plan = getattr(raw_sdk_obj, "plan", None)
-        self.plan_id = getattr(raw_sdk_obj, "plan_id", None) or getattr(raw_sdk_obj, "id", None)
+    """
+    Small compatibility wrapper around the REAL ArmorIQ SDK
+    PlanCapture object.
 
+    raw_sdk_obj MUST remain the original SDK object because
+    get_intent_token() expects an SDK PlanCapture.
+    """
+
+    def __init__(self, raw_sdk_obj: Any):
+
+        self.raw_sdk_obj = raw_sdk_obj
+
+        if isinstance(raw_sdk_obj, dict):
+
+            self.plan = raw_sdk_obj.get("plan")
+
+            self.plan_id = (
+                raw_sdk_obj.get("plan_id")
+                or raw_sdk_obj.get("id")
+            )
+
+        else:
+
+            self.plan = getattr(
+                raw_sdk_obj,
+                "plan",
+                None,
+            )
+
+            self.plan_id = (
+                getattr(
+                    raw_sdk_obj,
+                    "plan_id",
+                    None,
+                )
+                or getattr(
+                    raw_sdk_obj,
+                    "id",
+                    None,
+                )
+            )
+
+
+# ============================================================
+# ARMORIQ WRAPPER
+# ============================================================
 
 class ArmorIQWrapperClient:
     """
-    Minimal, strict wrapper around the official ArmorIQ Python SDK.
+    Thin application wrapper around the installed ArmorIQ SDK.
 
-    This wrapper only calls the documented SDK methods and avoids
-    speculative fallbacks. All failures are fail-closed: if the SDK is
-    unavailable or an operation cannot be completed, an exception is
-    raised so the application can refuse consequential actions.
+    Important design rule:
+
+        Application
+             |
+             v
+        This wrapper
+             |
+             v
+        Official ArmorIQ SDK
+             |
+             v
+        ArmorIQ infrastructure
+
+    We deliberately do NOT reimplement:
+        - token verification
+        - Merkle proofs
+        - CSRG headers
+        - policy enforcement
+        - proxy invocation
+        - API authentication
+
+    The installed SDK already implements those.
     """
 
-    def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or os.getenv("ARMORIQ_API_KEY")
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+    ):
+
+        # ----------------------------------------------------
+        # LOAD CONFIG
+        # ----------------------------------------------------
+
+        self.api_key = (
+            api_key
+            or os.getenv("ARMORIQ_API_KEY")
+            or ""
+        ).strip()
+
+        self.mode = (
+            os.getenv(
+                "ARMORIQ_MODE",
+                "real",
+            )
+            .strip()
+            .lower()
+        )
+
+        self.demo_mode = self._detect_demo_mode()
+
+        self.client = None
+
+        self._last_plan = None
+        self._last_intent_token = None
+
+        # ----------------------------------------------------
+        # DEMO
+        # ----------------------------------------------------
+
+        if self.demo_mode:
+
+            logger.warning(
+                "=================================================="
+            )
+
+            logger.warning(
+                "ARMORIQ LOCAL DEMO MODE ENABLED"
+            )
+
+            logger.warning(
+                "Real ArmorIQ authorization is NOT being used."
+            )
+
+            logger.warning(
+                "=================================================="
+            )
+
+            return
+
+        # ----------------------------------------------------
+        # REAL MODE
+        # ----------------------------------------------------
 
         if not self.api_key:
-            raise ArmorIQException("ARMORIQ_API_KEY is required. Live ArmorIQ mode cannot run without credentials.")
+
+            raise ArmorIQException(
+                "ARMORIQ_API_KEY is required "
+                "when ARMORIQ_MODE=real."
+            )
 
         if not HAS_OFFICIAL_SDK:
-            raise ArmorIQException("armoriq-sdk is not installed. Install the official ArmorIQ SDK.")
+
+            raise ArmorIQException(
+                "armoriq-sdk is not installed."
+            )
+
+        # ----------------------------------------------------
+        # OPTIONAL SDK IDENTIFIERS
+        #
+        # Current SDK source confirms these are optional.
+        # It automatically falls back to:
+        #
+        # __sdk_multiuser__
+        #
+        # when they are missing.
+        # ----------------------------------------------------
+
+        user_id = (
+            os.getenv("ARMORIQ_USER_ID")
+            or os.getenv("USER_ID")
+            or None
+        )
+
+        agent_id = (
+            os.getenv("ARMORIQ_AGENT_ID")
+            or os.getenv("AGENT_ID")
+            or None
+        )
+
+        context_id = (
+            os.getenv("ARMORIQ_CONTEXT_ID")
+            or os.getenv("CONTEXT_ID")
+            or "default"
+        )
+
+        # ----------------------------------------------------
+        # DO NOT USE from_config()
+        #
+        # The installed SDK constructor already handles:
+        #
+        #   production endpoints
+        #   API authentication
+        #   user/agent defaults
+        #   proxy endpoints
+        #
+        # ----------------------------------------------------
 
         try:
-            # Initialize the official client using documented constructor
-            self.client = ArmorIQClient(api_key=self.api_key)
+
+            self.client = ArmorIQClient(
+                api_key=self.api_key,
+                user_id=user_id,
+                agent_id=agent_id,
+                context_id=context_id,
+                use_production=True,
+            )
+
+            logger.info(
+                "ArmorIQ REAL MODE initialized."
+            )
+
+            logger.info(
+                "ArmorIQ user_id=%s",
+                user_id or "__sdk_multiuser__",
+            )
+
+            logger.info(
+                "ArmorIQ agent_id=%s",
+                agent_id or "__sdk_multiuser__",
+            )
+
+            logger.info(
+                "ArmorIQ context_id=%s",
+                context_id,
+            )
+
         except Exception as exc:
-            raise ArmorIQException(f"Failed to initialize ArmorIQ SDK: {exc}") from exc
 
-        # Hold the last captured plan for token issuance
-        self._last_plan = None
+            logger.exception(
+                "ArmorIQ SDK initialization failed."
+            )
 
-    def capture_plan(self, llm: str, prompt: str, plan: Dict[str, Any]) -> PlanCaptureResult:
-        """Capture and validate an explicit execution plan via the SDK.
+            raise ArmorIQException(
+                f"Failed to initialize ArmorIQ SDK: {exc}"
+            ) from exc
 
-        The SDK expects a `plan` dict with `goal` and `steps`, where each
-        step contains `action`, `mcp`, and optional `params`.
-        """
-        try:
-            # Normalize plan into SDK shape
-            sdk_plan = {
-                "goal": plan.get("goal") if isinstance(plan, dict) else getattr(plan, "goal", prompt),
-                "steps": [],
+
+    # ========================================================
+    # MODE
+    # ========================================================
+
+    def _detect_demo_mode(self) -> bool:
+
+        if self.mode in {
+            "demo",
+            "local",
+            "mock",
+        }:
+            return True
+
+        if self.mode in {
+            "real",
+            "production",
+            "live",
+        }:
+            return False
+
+        # Automatic fallback:
+        #
+        # No API key -> demo
+        # API key -> real
+        #
+        return not bool(self.api_key)
+
+
+    # ========================================================
+    # CAPTURE PLAN
+    # ========================================================
+
+    def capture_plan(
+        self,
+        llm: str,
+        prompt: str,
+        plan: Dict[str, Any],
+    ) -> PlanCaptureResult:
+
+        if not isinstance(plan, dict):
+
+            raise ArmorIQException(
+                "ArmorIQ plan must be a dictionary."
+            )
+
+        steps = plan.get("steps") or []
+
+        if not isinstance(steps, list):
+
+            raise ArmorIQException(
+                "ArmorIQ plan steps must be a list."
+            )
+
+        sdk_steps = []
+
+        for index, step in enumerate(steps):
+
+            if not isinstance(step, dict):
+
+                raise ArmorIQException(
+                    f"Invalid plan step {index}."
+                )
+
+            action = step.get("action")
+
+            mcp = (
+                step.get("tool")
+                or step.get("mcp")
+            )
+
+            params = (
+                step.get("inputs")
+                or step.get("params")
+                or {}
+            )
+
+            if not action:
+
+                raise ArmorIQException(
+                    f"Plan step {index} has no action."
+                )
+
+            if not mcp:
+
+                raise ArmorIQException(
+                    f"Plan step {index} has no MCP/tool."
+                )
+
+            if not isinstance(params, dict):
+
+                raise ArmorIQException(
+                    f"Plan step {index} params must be a dictionary."
+                )
+
+            sdk_steps.append(
+                {
+                    "action": action,
+                    "mcp": mcp,
+                    "params": params,
+                }
+            )
+
+        sdk_plan = {
+            "goal": plan.get(
+                "goal",
+                prompt,
+            ),
+            "steps": sdk_steps,
+            "policy": (
+                plan.get("constraints")
+                or plan.get("policy")
+                or {}
+            ),
+        }
+
+        logger.info(
+            "ArmorIQ plan prepared: %s",
+            sdk_plan,
+        )
+
+        # ----------------------------------------------------
+        # LOCAL DEMO
+        # ----------------------------------------------------
+
+        if self.demo_mode:
+
+            demo_plan = {
+                "plan_id": (
+                    f"demo-plan-"
+                    f"{uuid.uuid4().hex[:12]}"
+                ),
+                "plan": sdk_plan,
             }
 
-            # Include constraints as a policy object expected by the SDK
-            sdk_plan["policy"] = plan.get("constraints") if isinstance(plan, dict) else getattr(plan, "constraints", {})
+            result = PlanCaptureResult(
+                demo_plan
+            )
 
-            steps = plan.get("steps") if isinstance(plan, dict) else getattr(plan, "steps", [])
-            for s in steps:
-                if isinstance(s, dict):
-                    action = s.get("action")
-                    mcp = s.get("tool") or s.get("mcp")
-                    params = s.get("inputs") or s.get("params") or {}
-                else:
-                    action = getattr(s, "action", None)
-                    mcp = getattr(s, "tool", None) or getattr(s, "mcp", None)
-                    params = getattr(s, "inputs", None) or getattr(s, "params", None) or {}
+            self._last_plan = result
 
-                sdk_plan["steps"].append({"action": action, "mcp": mcp, "params": params})
+            logger.info(
+                "LOCAL DEMO PLAN CAPTURED: %s",
+                result.plan_id,
+            )
 
-            logger.info("SDK plan being sent to ArmorIQ: %s", sdk_plan)
-            captured = self.client.capture_plan(llm=llm, prompt=prompt, plan=sdk_plan)
-            self._last_plan = captured
-            return PlanCaptureResult(raw_sdk_obj=captured)
+            return result
+
+        # ----------------------------------------------------
+        # REAL SDK
+        # ----------------------------------------------------
+
+        if self.client is None:
+
+            raise ArmorIQException(
+                "ArmorIQ SDK client is not initialized."
+            )
+
+        try:
+
+            capture_fn = getattr(
+                self.client,
+                "capture_plan",
+                None,
+            )
+
+            if not callable(capture_fn):
+
+                raise ArmorIQException(
+                    "Installed ArmorIQ SDK does not expose "
+                    "capture_plan()."
+                )
+
+            # IMPORTANT:
+            #
+            # Pass the plan to the SDK exactly once.
+            #
+            captured = capture_fn(
+                llm=llm,
+                prompt=prompt,
+                plan=sdk_plan,
+            )
+
+            if captured is None:
+
+                raise ArmorIQException(
+                    "ArmorIQ returned an empty PlanCapture."
+                )
+
+            result = PlanCaptureResult(
+                captured
+            )
+
+            if result.plan is None:
+
+                raise ArmorIQException(
+                    "ArmorIQ returned PlanCapture without plan data."
+                )
+
+            self._last_plan = result
+
+            logger.info(
+                "REAL ARMORIQ PLAN CAPTURED: %s",
+                result.plan_id,
+            )
+
+            return result
+
+        except ArmorIQException:
+            raise
 
         except Exception as exc:
-            raise ArmorIQException(f"ArmorIQ capture_plan failed: {exc}") from exc
 
-    def get_intent_token_details(self, plan_capture: PlanCaptureResult, validity_seconds: int = 300) -> Dict[str, Any]:
-        """Request a signed intent token for a captured plan using the SDK.
+            logger.exception(
+                "ArmorIQ capture_plan failed."
+            )
 
-        Returns a dict containing the token string under `token_string` and
-        raw SDK response under `raw`.
-        """
-        try:
-            get_token = getattr(self.client, "get_intent_token", None)
-            if not callable(get_token):
-                raise ArmorIQException("ArmorIQ SDK get_intent_token API not available")
+            raise ArmorIQException(
+                f"ArmorIQ capture_plan failed: {exc}"
+            ) from exc
 
-            # Call SDK correctly: `policy` is the second positional arg, so pass
-            # `validity_seconds` as a keyword to avoid accidentally sending an
-            # integer where a policy object is expected.
-            # Extract policy from the captured plan (SDK expects a policy object)
-            captured_policy = None
-            try:
-                captured_policy = getattr(plan_capture.raw_sdk_obj, "plan", {}).get("policy")
-            except Exception:
-                captured_policy = None
 
-            token_resp = get_token(
-                plan_capture.raw_sdk_obj,
-                policy=captured_policy,
+    # ========================================================
+    # GET INTENT TOKEN DETAILS
+    # ========================================================
+
+    def get_intent_token_details(
+        self,
+        plan_capture: PlanCaptureResult,
+        validity_seconds: int = 300,
+    ) -> Dict[str, Any]:
+
+        if not isinstance(
+            plan_capture,
+            PlanCaptureResult,
+        ):
+
+            raise ArmorIQException(
+                "Invalid PlanCaptureResult."
+            )
+
+        # ----------------------------------------------------
+        # DEMO
+        # ----------------------------------------------------
+
+        if self.demo_mode:
+
+            token = LocalIntentToken(
+                plan_id=plan_capture.plan_id,
                 validity_seconds=validity_seconds,
             )
 
-            # SDK returns an `IntentToken` pydantic model instance on success.
-            if not token_resp:
-                raise InvalidTokenException("ArmorIQ issued no intent token")
+            self._last_intent_token = token
 
-            # Normalize response: keep the SDK object under `raw` and also
-            # return the object itself as `token_string` so callers can pass
-            # it directly into `invoke()` (the SDK accepts an IntentToken).
-            # Only accept an actual token identifier from the SDK response.
-            # Do NOT fall back to plan_id or other identifiers — that would
-            # treat non-token values as intent tokens (fail-open risk).
-            token_id = getattr(token_resp, "token_id", None)
-            # Return only safe metadata to callers (do not expose full token)
             return {
-                "token_string": token_id,
-                "token_id": token_id,
-                "api_key_used": True,
-                "provider": "ArmorIQ SDK",
+                "token": token,
+
+                "token_string": token.token_id,
+
+                "token_id": token.token_id,
+
+                "provider": "ArmorIQ Local Demo",
+
+                "api_key_used": False,
+
+                "demo_mode": True,
+
+                "validity_seconds": validity_seconds,
             }
 
-        except (InvalidTokenException, TokenExpiredException, IntentMismatchException, PolicyBlockedException):
-            raise
-        except Exception as exc:
-            raise ArmorIQException(f"ArmorIQ get_intent_token failed: {exc}") from exc
+        # ----------------------------------------------------
+        # REAL SDK
+        # ----------------------------------------------------
 
-    def get_intent_token(self, plan_capture: PlanCaptureResult, validity_seconds: int = 300) -> str:
-        details = self.get_intent_token_details(plan_capture, validity_seconds)
-        return details["token_string"]
+        if self.client is None:
 
-    def invoke(self, mcp: str, action: str, intent_token: str, params: Optional[Dict[str, Any]] = None, user_email: Optional[str] = None) -> Dict[str, Any]:
-        """Invoke a protected MCP action via the SDK using the issued intent token.
-
-        The SDK raises domain-specific exceptions for token/verification failures
-        (e.g., InvalidTokenException, IntentMismatchException, PolicyBlockedException).
-        """
-        if not intent_token:
-            raise InvalidTokenException("No ArmorIQ intent token supplied.")
-
-        invoke_fn = getattr(self.client, "invoke", None)
-        if not callable(invoke_fn):
-            raise ArmorIQException("ArmorIQ SDK invoke API not available")
+            raise ArmorIQException(
+                "ArmorIQ SDK client is not initialized."
+            )
 
         try:
-            result = invoke_fn(mcp=mcp, action=action, intent_token=intent_token, params=params or {}, user_email=user_email)
 
-            # If SDK returned a structured MCPInvocationResult, inspect it.
-            # Success + verified => ALLOW. Error or unverified => BLOCK (fail-closed).
-            try:
-                status = getattr(result, "status", None)
-                verified = getattr(result, "verified", None)
-                # If the SDK indicates success and verification, treat as ALLOW
-                if (status and str(status).lower() == "success") or (verified is True):
-                    return {"decision": "ALLOW", "raw": result}
+            get_token_fn = getattr(
+                self.client,
+                "get_intent_token",
+                None,
+            )
 
-                # Otherwise treat ambiguous/failed invocation as BLOCK
-                return {"decision": "BLOCK", "raw": result}
+            if not callable(get_token_fn):
 
-            except Exception:
-                # Malformed result — fail closed
-                return {"decision": "BLOCK", "raw": result}
+                raise ArmorIQException(
+                    "Installed ArmorIQ SDK does not expose "
+                    "get_intent_token()."
+                )
+
+            # ------------------------------------------------
+            # Extract policy from our plan.
+            #
+            # SDK expects:
+            #
+            # get_intent_token(
+            #     plan_capture,
+            #     policy=...,
+            #     validity_seconds=...
+            # )
+            # ------------------------------------------------
+
+            policy = None
+
+            if isinstance(
+                plan_capture.plan,
+                dict,
+            ):
+
+                policy = (
+                    plan_capture.plan.get("policy")
+                )
+
+            logger.info(
+                "Requesting REAL ArmorIQ IntentToken."
+            )
+
+            token = get_token_fn(
+                plan_capture.raw_sdk_obj,
+                policy=policy,
+                validity_seconds=validity_seconds,
+            )
+
+            if token is None:
+
+                raise InvalidTokenException(
+                    "ArmorIQ returned no IntentToken."
+                )
+
+            # CRITICAL:
+            #
+            # Keep the ORIGINAL SDK IntentToken object.
+            #
+            self._last_intent_token = token
+
+            token_id = getattr(
+                token,
+                "token_id",
+                None,
+            )
+
+            if not token_id:
+
+                raise InvalidTokenException(
+                    "ArmorIQ returned an IntentToken "
+                    "without token_id."
+                )
+
+            logger.info(
+                "REAL ArmorIQ IntentToken issued: %s",
+                token_id,
+            )
+
+            return {
+                # REAL SDK OBJECT
+                "token": token,
+
+                # Frontend/API-safe identifier
+                "token_string": token_id,
+
+                "token_id": token_id,
+
+                "provider": "ArmorIQ SDK",
+
+                "api_key_used": True,
+
+                "demo_mode": False,
+
+                "validity_seconds": validity_seconds,
+            }
+
+        except (
+            InvalidTokenException,
+            TokenExpiredException,
+            IntentMismatchException,
+            PolicyBlockedException,
+        ):
+            raise
 
         except Exception as exc:
-            # Map known SDK enforcement exceptions to explicit decisions
-            # Prefer SDK exceptions when available, otherwise fall back to
-            # the local app.armoriq.errors types.
-            # Policy blocked -> BLOCK
-            if HAS_OFFICIAL_SDK and sdk_exceptions is not None and isinstance(exc, getattr(sdk_exceptions, "PolicyBlockedException", ())):
-                return {"decision": "BLOCK", "error": str(exc)}
-            if HAS_OFFICIAL_SDK and sdk_exceptions is not None and isinstance(exc, getattr(sdk_exceptions, "PolicyHoldException", ())):
-                return {"decision": "HOLD", "error": str(exc)}
-            if isinstance(exc, PolicyBlockedException) or isinstance(exc, IntentMismatchException):
-                return {"decision": "BLOCK", "error": str(exc)}
-            if isinstance(exc, TokenExpiredException) or isinstance(exc, InvalidTokenException):
-                # Treat token problems as fail-closed (BLOCK)
-                return {"decision": "BLOCK", "error": str(exc)}
 
-            # Unknown exception: fail closed by raising an ArmorIQException so
-            # the orchestrator records a BLOCK and associated error.
-            raise ArmorIQException(f"MCP invocation failed: {exc}") from exc
+            logger.exception(
+                "ArmorIQ get_intent_token failed."
+            )
+
+            raise ArmorIQException(
+                f"ArmorIQ get_intent_token failed: {exc}"
+            ) from exc
+
+
+    # ========================================================
+    # GET INTENT TOKEN
+    # ========================================================
+
+    def get_intent_token(
+        self,
+        plan_capture: PlanCaptureResult,
+        validity_seconds: int = 300,
+    ) -> Any:
+
+        details = self.get_intent_token_details(
+            plan_capture,
+            validity_seconds,
+        )
+
+        token = details.get("token")
+
+        if token is None:
+
+            raise InvalidTokenException(
+                "ArmorIQ intent token is missing."
+            )
+
+        return token
+
+
+    # ========================================================
+    # INVOKE
+    # ========================================================
+
+    def invoke(
+        self,
+        mcp: str,
+        action: str,
+        intent_token: Any,
+        params: Optional[Dict[str, Any]] = None,
+        user_email: Optional[str] = None,
+    ) -> Dict[str, Any]:
+
+        if not intent_token:
+
+            raise InvalidTokenException(
+                "No ArmorIQ intent token supplied."
+            )
+
+        if not mcp:
+
+            raise ArmorIQException(
+                "MCP name is required."
+            )
+
+        if not action:
+
+            raise ArmorIQException(
+                "Action name is required."
+            )
+
+        if params is None:
+            params = {}
+
+        if not isinstance(params, dict):
+
+            raise ArmorIQException(
+                "Invocation params must be a dictionary."
+            )
+
+        # ----------------------------------------------------
+        # DEMO
+        # ----------------------------------------------------
+
+        if self.demo_mode:
+
+            token_id = getattr(
+                intent_token,
+                "token_id",
+                None,
+            )
+
+            if not token_id and isinstance(
+                intent_token,
+                str,
+            ):
+                token_id = intent_token
+
+            if not token_id:
+
+                raise InvalidTokenException(
+                    "Invalid local demo token."
+                )
+
+            logger.info(
+                "LOCAL DEMO INVOCATION: %s.%s",
+                mcp,
+                action,
+            )
+
+            return {
+                "decision": "ALLOW",
+                "status": "success",
+                "verified": True,
+                "provider": "ArmorIQ Local Demo",
+                "demo_mode": True,
+                "token_id": token_id,
+                "mcp": mcp,
+                "action": action,
+                "params": params,
+                "data": {
+                    "message": (
+                        "Action authorized by "
+                        "local ArmorIQ demo policy."
+                    )
+                },
+            }
+
+        # ----------------------------------------------------
+        # REAL SDK
+        # ----------------------------------------------------
+
+        if self.client is None:
+
+            raise ArmorIQException(
+                "ArmorIQ SDK client is not initialized."
+            )
+
+        # ----------------------------------------------------
+        # VERY IMPORTANT
+        #
+        # Real ArmorIQ invocation requires the actual SDK
+        # IntentToken object.
+        #
+        # Do NOT convert it to token_id.
+        # Do NOT manually verify it.
+        # Do NOT create another token.
+        #
+        # The SDK handles:
+        #
+        #   token expiry
+        #   plan/action matching
+        #   Merkle proofs
+        #   CSRG headers
+        #   proxy communication
+        #   policy enforcement
+        # ----------------------------------------------------
+
+        token_id = getattr(
+            intent_token,
+            "token_id",
+            None,
+        )
+
+        logger.info(
+            "REAL ARMORIQ INVOCATION: "
+            "mcp=%s action=%s token=%s",
+            mcp,
+            action,
+            token_id or "<hidden>",
+        )
+
+        try:
+
+            invoke_fn = getattr(
+                self.client,
+                "invoke",
+                None,
+            )
+
+            if not callable(invoke_fn):
+
+                raise ArmorIQException(
+                    "Installed ArmorIQ SDK does not expose "
+                    "invoke()."
+                )
+
+            result = invoke_fn(
+                mcp=mcp,
+                action=action,
+                intent_token=intent_token,
+                params=params,
+                user_email=user_email,
+            )
+
+            if result is None:
+
+                raise ArmorIQException(
+                    "ArmorIQ invoke() returned no result."
+                )
+
+            # ------------------------------------------------
+            # Actual SDK result:
+            #
+            # MCPInvocationResult
+            #
+            # Current SDK source confirms:
+            #
+            # status
+            # verified
+            # result
+            # metadata
+            # ------------------------------------------------
+
+            status = getattr(
+                result,
+                "status",
+                None,
+            )
+
+            verified = getattr(
+                result,
+                "verified",
+                None,
+            )
+
+            result_data = getattr(
+                result,
+                "result",
+                None,
+            )
+
+            metadata = getattr(
+                result,
+                "metadata",
+                None,
+            )
+
+            normalized_status = (
+                str(status).lower()
+                if status is not None
+                else ""
+            )
+
+            # ------------------------------------------------
+            # SUCCESS
+            # ------------------------------------------------
+
+            if (
+                normalized_status
+                in {
+                    "success",
+                    "succeeded",
+                    "ok",
+                    "allowed",
+                }
+                or verified is True
+            ):
+
+                return {
+                    "decision": "ALLOW",
+                    "status": status,
+                    "verified": verified,
+                    "data": result_data,
+                    "metadata": metadata,
+                    "raw": result,
+                    "provider": "ArmorIQ SDK",
+                    "demo_mode": False,
+                }
+
+            # ------------------------------------------------
+            # EXPLICIT FAILURE
+            # ------------------------------------------------
+
+            if normalized_status in {
+                "error",
+                "failed",
+                "failure",
+                "blocked",
+                "denied",
+                "rejected",
+                "forbidden",
+            }:
+
+                return {
+                    "decision": "BLOCK",
+                    "status": status,
+                    "verified": verified,
+                    "data": result_data,
+                    "metadata": metadata,
+                    "raw": result,
+                    "provider": "ArmorIQ SDK",
+                    "demo_mode": False,
+                }
+
+            # ------------------------------------------------
+            # FAIL CLOSED
+            # ------------------------------------------------
+
+            return {
+                "decision": "BLOCK",
+                "status": status,
+                "verified": verified,
+                "data": result_data,
+                "metadata": metadata,
+                "raw": result,
+                "provider": "ArmorIQ SDK",
+                "demo_mode": False,
+                "error": (
+                    "ArmorIQ returned an ambiguous "
+                    "invocation result."
+                ),
+            }
+
+        # ----------------------------------------------------
+        # ARMORIQ POLICY / TOKEN ERRORS
+        # ----------------------------------------------------
+
+        except Exception as exc:
+
+            logger.exception(
+                "ArmorIQ invocation exception."
+            )
+
+            # -----------------------------------------------
+            # Official SDK exceptions
+            # -----------------------------------------------
+
+            if sdk_exceptions is not None:
+
+                policy_blocked_cls = getattr(
+                    sdk_exceptions,
+                    "PolicyBlockedException",
+                    None,
+                )
+
+                if (
+                    policy_blocked_cls
+                    and isinstance(
+                        exc,
+                        policy_blocked_cls,
+                    )
+                ):
+
+                    return {
+                        "decision": "BLOCK",
+                        "status": "blocked",
+                        "verified": False,
+                        "error": str(exc),
+                        "exception_type": (
+                            type(exc).__name__
+                        ),
+                        "provider": "ArmorIQ SDK",
+                    }
+
+                policy_hold_cls = getattr(
+                    sdk_exceptions,
+                    "PolicyHoldException",
+                    None,
+                )
+
+                if (
+                    policy_hold_cls
+                    and isinstance(
+                        exc,
+                        policy_hold_cls,
+                    )
+                ):
+
+                    return {
+                        "decision": "HOLD",
+                        "status": "hold",
+                        "verified": False,
+                        "error": str(exc),
+                        "exception_type": (
+                            type(exc).__name__
+                        ),
+                        "provider": "ArmorIQ SDK",
+                    }
+
+                intent_mismatch_cls = getattr(
+                    sdk_exceptions,
+                    "IntentMismatchException",
+                    None,
+                )
+
+                if (
+                    intent_mismatch_cls
+                    and isinstance(
+                        exc,
+                        intent_mismatch_cls,
+                    )
+                ):
+
+                    return {
+                        "decision": "BLOCK",
+                        "status": "blocked",
+                        "verified": False,
+                        "error": str(exc),
+                        "exception_type": (
+                            type(exc).__name__
+                        ),
+                        "provider": "ArmorIQ SDK",
+                    }
+
+                invalid_token_cls = getattr(
+                    sdk_exceptions,
+                    "InvalidTokenException",
+                    None,
+                )
+
+                if (
+                    invalid_token_cls
+                    and isinstance(
+                        exc,
+                        invalid_token_cls,
+                    )
+                ):
+
+                    return {
+                        "decision": "BLOCK",
+                        "status": "blocked",
+                        "verified": False,
+                        "error": str(exc),
+                        "exception_type": (
+                            type(exc).__name__
+                        ),
+                        "provider": "ArmorIQ SDK",
+                    }
+
+                token_expired_cls = getattr(
+                    sdk_exceptions,
+                    "TokenExpiredException",
+                    None,
+                )
+
+                if (
+                    token_expired_cls
+                    and isinstance(
+                        exc,
+                        token_expired_cls,
+                    )
+                ):
+
+                    return {
+                        "decision": "BLOCK",
+                        "status": "expired",
+                        "verified": False,
+                        "error": str(exc),
+                        "exception_type": (
+                            type(exc).__name__
+                        ),
+                        "provider": "ArmorIQ SDK",
+                    }
+
+            # -----------------------------------------------
+            # Our application exceptions
+            # -----------------------------------------------
+
+            if isinstance(
+                exc,
+                (
+                    PolicyBlockedException,
+                    IntentMismatchException,
+                    InvalidTokenException,
+                    TokenExpiredException,
+                ),
+            ):
+
+                return {
+                    "decision": "BLOCK",
+                    "status": "blocked",
+                    "verified": False,
+                    "error": str(exc),
+                    "exception_type": (
+                        type(exc).__name__
+                    ),
+                    "provider": "ArmorIQ SDK",
+                }
+
+            # -----------------------------------------------
+            # Do NOT turn an authentication error into ALLOW.
+            #
+            # Fail closed.
+            # -----------------------------------------------
+
+            raise ArmorIQException(
+                f"MCP invocation failed: {exc}"
+            ) from exc

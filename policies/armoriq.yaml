@@ -1,22 +1,27 @@
-version: "1.0"
-agent_id: "scholarship-governed-agent-v1"
-environment: "development"
+version: v1
 
-policies:
-  - name: "scope_enforcement"
-    description: "Restrict scholarship submissions to authorized type and state"
-    rules:
-      - action: "submit_application"
-        condition: "inputs.scholarship_type == 'government' && inputs.state == 'Punjab'"
-        effect: "ALLOW"
-      - action: "submit_application"
-        effect: "BLOCK"
+identity:
+  api_key: $ARMORIQ_API_KEY
+  user_id: 5d2ea046-20fd-4605-ad88-cd3a5067dd7f
+  agent_id: eb106a0c-f528-4924-a60c-27be5960ea94
 
-  - name: "eligibility_enforcement"
-    description: "Prevent submission for ineligible scholarships"
-    rules:
-      - action: "submit_application"
-        condition: "inputs.is_eligible == true"
-        effect: "ALLOW"
-      - action: "submit_application"
-        effect: "BLOCK"
+environment: production
+
+mcp_servers:
+  - id: scholarship
+    url: http://127.0.0.1:9000/mcp
+    auth:
+      type: none
+    description: Scholarship MCP server
+
+policy:
+  allow:
+    - scholarship.search_scholarships
+    - scholarship.check_eligibility
+    - scholarship.prepare_application
+    - scholarship.submit_application
+  deny: []
+
+intent:
+  ttl_seconds: 300
+  require_csrg: true
