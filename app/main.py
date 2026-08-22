@@ -14,6 +14,16 @@ if TEST_SHIM_ENABLED:
     from app.armoriq.test_shim import FakeArmorIQShim  # type: ignore
 from app.scholarship.service import ScholarshipService
 
+# Single-port local mode: optionally mount the mock portal into the main app
+SINGLE_PORT = os.getenv("SINGLE_PORT", "false").lower() in ("1", "true", "yes")
+if SINGLE_PORT:
+    try:
+        from mock_portal.routes import router as mock_router
+        from mock_portal.database import init_db as mock_init_db
+    except Exception:
+        mock_router = None
+        mock_init_db = None
+
 app = FastAPI(
     title="Intent-Governed Scholarship Agent Service",
     description="Main Backend orchestrating student intent, ArmorIQ governance, and MCP tool execution",
@@ -32,7 +42,23 @@ if TEST_SHIM_ENABLED:
     orchestrator = ScholarshipAgentOrchestrator(armoriq_client=FakeArmorIQShim())
 else:
     orchestrator = ScholarshipAgentOrchestrator()
-service = ScholarshipService()
+
+# Determine portal base URL. When running single-port locally, the portal
+# endpoints are mounted on the same process at port 8000.
+portal_base = os.getenv("PORTAL_BASE_URL", "http://127.0.0.1:8001")
+if SINGLE_PORT:
+    portal_base = os.getenv("SINGLE_PORT_BASE_URL", "http://127.0.0.1:8000")
+
+service = ScholarshipService(base_url=portal_base)
+
+# If single-port mode is enabled and the mock router is available, mount it
+if SINGLE_PORT and mock_router is not None:
+    app.include_router(mock_router)
+
+    if mock_init_db is not None:
+        @app.on_event("startup")
+        def _init_mock_db():
+            mock_init_db()
 
 class WorkflowRunRequest(BaseModel):
     student_name: str = "Gurpreet Singh"
@@ -63,7 +89,7 @@ def run_agent_workflow(req: WorkflowRunRequest):
     try:
         with httpx.Client(timeout=5.0) as http_client:
             http_client.post(
-                "http://127.0.0.1:8001/api/student/register",
+                f"{portal_base}/api/student/register",
                 json={
                     "student_id": "student-demo-001",
                     "name": req.student_name,
@@ -73,7 +99,7 @@ def run_agent_workflow(req: WorkflowRunRequest):
                     "category": "General"
                 }
             )
-    except Exception as e:
+    except Exception:
         pass
 
     intent = StudentIntent(

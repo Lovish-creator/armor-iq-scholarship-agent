@@ -74,15 +74,39 @@ class ScholarshipAgentOrchestrator:
         )
 
         # ---------------------------------------------------------
-        # 3. Obtain REAL ArmorIQ intent token
+        # 3. Obtain REAL ArmorIQ intent token (documented flow)
         # ---------------------------------------------------------
 
-        telemetry = self.armoriq.get_intent_token_details(
-            captured_plan,
-            validity_seconds=300,
-        )
+        # Obtain the intent token using the real client's documented API.
+        # For test shims that only implement `get_intent_token_details`,
+        # fall back to that method to extract the token string — this
+        # preserves test compatibility without reintroducing insecure
+        # session-derived tokens.
+        intent_token = None
+        telemetry = None
 
-        intent_token = telemetry["token_string"]
+        get_token_fn = getattr(self.armoriq, "get_intent_token", None)
+        if callable(get_token_fn):
+            try:
+                intent_token = get_token_fn(captured_plan, validity_seconds=300)
+            except TypeError:
+                # Shim may accept only (plan_capture)
+                intent_token = get_token_fn(captured_plan)
+
+        if intent_token is None:
+            # Fallback to details-based API used by some test doubles
+            telemetry = self.armoriq.get_intent_token_details(
+                captured_plan,
+                validity_seconds=300,
+            )
+            intent_token = telemetry.get("token_string")
+
+        # If we haven't yet fetched telemetry metadata, do so now (safe)
+        if telemetry is None:
+            try:
+                telemetry = self.armoriq.get_intent_token_details(captured_plan, validity_seconds=300)
+            except Exception:
+                telemetry = None
 
         # ---------------------------------------------------------
         # 4. Execute workflow
