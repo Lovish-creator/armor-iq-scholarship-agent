@@ -71,7 +71,48 @@ def register_or_update_student(req: StudentRegisterRequest):
     """, (req.student_id, req.name, req.education, req.state, req.annual_income, req.category, req.cgpa, json.dumps(docs)))
     
     # Also register dynamic state scholarship if state is custom (e.g. Delhi, Maharashtra, UP)
-    state_sch_id = f"SCH-GOV-{req.state[:2].upper()}-01"
+    # Use a canonical mapping from full state names to their official two-letter codes
+    state_code_map = {
+        "Andhra Pradesh": "AP",
+        "Arunachal Pradesh": "AR",
+        "Assam": "AS",
+        "Bihar": "BR",
+        "Chhattisgarh": "CG",
+        "Goa": "GA",
+        "Gujarat": "GJ",
+        "Haryana": "HR",
+        "Himachal Pradesh": "HP",
+        "Jharkhand": "JH",
+        "Karnataka": "KA",
+        "Kerala": "KL",
+        "Madhya Pradesh": "MP",
+        "Maharashtra": "MH",
+        "Manipur": "MN",
+        "Meghalaya": "ML",
+        "Mizoram": "MZ",
+        "Nagaland": "NL",
+        "Odisha": "OD",
+        "Punjab": "PB",
+        "Rajasthan": "RJ",
+        "Sikkim": "SK",
+        "Tamil Nadu": "TN",
+        "Telangana": "TG",
+        "Tripura": "TR",
+        "Uttar Pradesh": "UP",
+        "Uttarakhand": "UT",
+        "West Bengal": "WB",
+        "Delhi": "DL",
+        "Puducherry": "PY",
+    }
+
+    normalized_state = req.state.strip()
+    code = state_code_map.get(normalized_state)
+    if not code:
+        # Fallback: use first two alphanumeric chars uppercased as a last resort
+        filtered = ''.join([c for c in normalized_state if c.isalnum()])
+        code = (filtered[:2].upper() if filtered else "XX")
+
+    state_sch_id = f"SCH-GOV-{code}-01"
     conn.execute("""
         INSERT OR REPLACE INTO scholarships 
         (scholarship_id, name, scholarship_type, eligible_states_json, eligible_fields_json, income_limit, min_cgpa, amount, deadline, required_documents_json)

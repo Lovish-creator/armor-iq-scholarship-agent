@@ -15,10 +15,26 @@ class FakeArmorIQShim:
 
     def capture_plan(self, llm: str, prompt: str, plan: Dict[str, Any]):
         self.plan_counter += 1
-        return type("Plan", (), {"raw_sdk_obj": object(), "plan_id": f"plan_test_{self.plan_counter}"})()
+        # Return an object similar to the SDK PlanCapture so callers that
+        # inspect attributes like `raw_sdk_obj` and `plan_id` behave the same.
+        return type("Plan", (), {"raw_sdk_obj": {"plan": plan}, "plan_id": f"plan_test_{self.plan_counter}"})()
 
     def get_intent_token(self, plan_capture: Any):
         return f"armoriq_intent_test_{getattr(plan_capture, 'plan_id', 'x')}"
+
+    def get_intent_token_details(self, plan_capture: Any, validity_seconds: int = 300):
+        """Mirror the real client's `get_intent_token_details` return shape for tests.
+
+        Returns a dict with `token_string` (the token), `token_id`, and `raw`.
+        """
+        token = self.get_intent_token(plan_capture)
+        return {
+            "token_string": token,
+            "token_id": f"intent_test_{getattr(plan_capture, 'plan_id', 'x')}",
+            "api_key_used": False,
+            "provider": "TEST_SHIM",
+            "raw": {"token": token},
+        }
 
     def invoke(self, mcp: str = None, action: str = None, intent_token: str = None, params: Dict[str, Any] = None, user_email: str = None):
         # Simple policy: if scholarship_id contains 'PRV' or params indicate private, block

@@ -45,8 +45,11 @@ class AgentPlanner:
                 gemini_reasoning_text = reasoning_resp.text
                 logger.info(f"Gemini 3.6 Flash Live Reasoning generated: {gemini_reasoning_text[:100]}...")
             except Exception as e:
-                logger.warning(f"Live Gemini reasoning call note: {e}")
-                gemini_reasoning_text = f"Live Gemini 3.6 Flash active: Analyzed intent for {intent.user_name} ({intent.target_state}, {intent.target_field}). Created 4-step governed plan."
+                # Do not synthesize a fake Gemini result. Record the error
+                # and leave `gemini_reasoning_text` as None so callers can
+                # observe that live Gemini reasoning was unavailable.
+                logger.warning(f"Live Gemini reasoning call failed: {e}")
+                gemini_reasoning_text = None
 
         steps = [
             PlanStep(

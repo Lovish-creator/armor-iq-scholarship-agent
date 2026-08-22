@@ -148,8 +148,24 @@ $env:PYTHONPATH='D:\armor-iq-scholarship-agent'
 ### 4. Open Frontend Dashboard
 Open `D:\armor-iq-scholarship-agent\frontend\index.html` in any web browser.
 
----
 
+## Single-port Local Mode (optional)
+
+For convenience when running demos locally you can mount the mock portal into the same FastAPI process so everything runs on port 8000.
+
+1. Enable single-port mode:
+
+```powershell
+$env:SINGLE_PORT = 'true'
+.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+2. Notes:
+- In this mode the mock portal routes from `mock_portal.routes` are included into the main app and the mock DB is initialized on startup.
+- Use `SINGLE_PORT_BASE_URL` to override the portal base URL (defaults to `http://127.0.0.1:8000`).
+- Set `ALLOW_MOCK_PORTAL_FALLBACK=false` in production-like environments to avoid accidentally using the mock portal.
+
+This is intended for local development and demos only.
 ## 🧪 Running Automated Tests
 
 Run the complete test suite including security non-execution assertions:

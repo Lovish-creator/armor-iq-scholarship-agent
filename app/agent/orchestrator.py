@@ -74,15 +74,39 @@ class ScholarshipAgentOrchestrator:
         )
 
         # ---------------------------------------------------------
-        # 3. Obtain REAL ArmorIQ intent token
+        # 3. Obtain REAL ArmorIQ intent token (documented flow)
         # ---------------------------------------------------------
 
-        telemetry = self.armoriq.get_intent_token_details(
-            captured_plan,
-            validity_seconds=300,
-        )
+        # Obtain the intent token using the real client's documented API.
+        # For test shims that only implement `get_intent_token_details`,
+        # fall back to that method to extract the token string — this
+        # preserves test compatibility without reintroducing insecure
+        # session-derived tokens.
+        intent_token = None
+        telemetry = None
 
-        intent_token = telemetry["token_string"]
+        get_token_fn = getattr(self.armoriq, "get_intent_token", None)
+        if callable(get_token_fn):
+            try:
+                intent_token = get_token_fn(captured_plan, validity_seconds=300)
+            except TypeError:
+                # Shim may accept only (plan_capture)
+                intent_token = get_token_fn(captured_plan)
+
+        if intent_token is None:
+            # Fallback to details-based API used by some test doubles
+            telemetry = self.armoriq.get_intent_token_details(
+                captured_plan,
+                validity_seconds=300,
+            )
+            intent_token = telemetry.get("token_string")
+
+        # If we haven't yet fetched telemetry metadata, do so now (safe)
+        if telemetry is None:
+            try:
+                telemetry = self.armoriq.get_intent_token_details(captured_plan, validity_seconds=300)
+            except Exception:
+                telemetry = None
 
         # ---------------------------------------------------------
         # 4. Execute workflow
@@ -92,6 +116,11 @@ class ScholarshipAgentOrchestrator:
 
         completed_count = 0
         blocked_count = 0
+
+        # Carry discovered scholarships between steps so eligibility/prep/submit
+        # can operate on actual discovered scholarship IDs rather than planner
+        # hardcoded placeholders.
+        discovered_scholarships = []
 
         for step in plan.steps:
 
@@ -166,6 +195,9 @@ class ScholarshipAgentOrchestrator:
                         )
                     )
 
+                    # Persist discovered scholarships for later steps
+                    discovered_scholarships = live_web_results
+
                     tool_out = {
                         "tool": "search_scholarships",
                         "search_type": "LIVE_INTERNET_SEARCH",
@@ -177,10 +209,32 @@ class ScholarshipAgentOrchestrator:
 
                 elif action == "check_eligibility":
 
+                    # Choose scholarship_id from discovered search results
+                    scholarship_id = inputs.get("scholarship_id")
+                    chosen_id = None
+                    if discovered_scholarships:
+                        # Prefer an exact match if planner supplied one
+                        ids = [s.get("scholarship_id") for s in discovered_scholarships if isinstance(s, dict)]
+                        if scholarship_id and scholarship_id in ids:
+                            chosen_id = scholarship_id
+                        else:
+                            # Pick the first discovered candidate matching the requested type/state
+                            for s in discovered_scholarships:
+                                if not isinstance(s, dict):
+                                    continue
+                                if inputs.get("scholarship_type") and s.get("scholarship_type") != inputs.get("scholarship_type"):
+                                    continue
+                                if inputs.get("state") and s.get("eligible_states") and inputs.get("state") not in s.get("eligible_states") and "All India" not in s.get("eligible_states"):
+                                    continue
+                                chosen_id = s.get("scholarship_id")
+                                break
+                    if not chosen_id:
+                        chosen_id = scholarship_id
+
                     eligibility_res = (
                         self.tools.check_eligibility(
                             student_id=inputs["student_id"],
-                            scholarship_id=inputs["scholarship_id"],
+                            scholarship_id=chosen_id,
                         )
                     )
 
@@ -205,25 +259,46 @@ class ScholarshipAgentOrchestrator:
 
                 elif action == "prepare_application":
 
+                    sch_id = inputs.get("scholarship_id")
+                    # If search produced candidates, prefer that canonical id
+                    if discovered_scholarships and any(isinstance(s, dict) and s.get("scholarship_id") == sch_id for s in discovered_scholarships) is False:
+                        # Fallback to first discovered if planner id not present
+                        for s in discovered_scholarships:
+                            if isinstance(s, dict):
+                                sch_id = s.get("scholarship_id")
+                                break
+
                     tool_out = (
                         self.tools.prepare_application(
                             student_id=inputs["student_id"],
-                            scholarship_id=inputs["scholarship_id"],
+                            scholarship_id=sch_id,
                         )
                     )
 
                 elif action == "submit_application":
 
-                    # -------------------------------------------------
-                    # CRITICAL:
-                    # This code can only be reached after ArmorIQ
-                    # returned ALLOW.
-                    # -------------------------------------------------
+                    # Ensure submission targets a scholarship discovered earlier
+                    sch_id = inputs.get("scholarship_id")
+                    if discovered_scholarships:
+                        # If planner supplied an id and it appears in discovered, use it; otherwise pick first discovered
+                        ids = [s.get("scholarship_id") for s in discovered_scholarships if isinstance(s, dict)]
+                        if sch_id not in ids:
+                            sch_id = ids[0] if ids else sch_id
+
+                    # Defense-in-depth: only submit if eligibility was verified earlier
+                    eligible = False
+                    for prev in step_results:
+                        if prev.action == "check_eligibility" and prev.details.get("result") and prev.details["result"].get("scholarship_id") == sch_id:
+                            eligible = prev.details["result"].get("is_eligible", False)
+                            break
+
+                    if not eligible:
+                        raise IntentMismatchException("Cannot submit: scholarship not verified eligible or eligibility unknown")
 
                     tool_out = (
                         self.tools.submit_application(
                             student_id=inputs["student_id"],
-                            scholarship_id=inputs["scholarship_id"],
+                            scholarship_id=sch_id,
                             intent_token=intent_token,
                             armoriq_decision="ALLOW",
                         )
