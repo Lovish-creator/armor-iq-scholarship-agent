@@ -14,6 +14,11 @@ class ScholarshipService:
     def __init__(self, base_url: Optional[str] = None):
         # Allow overriding the portal base URL via environment for real integration.
         self.base_url = base_url or os.getenv("PORTAL_BASE_URL", "http://127.0.0.1:8001")
+        # Allow tests and demo mode to use the in-process mock portal as a
+        # fallback. Production deployments SHOULD set
+        # `ALLOW_MOCK_PORTAL_FALLBACK=false` to avoid accidentally using the
+        # mock portal when the real portal is unreachable.
+        self.allow_mock_portal_fallback = os.getenv("ALLOW_MOCK_PORTAL_FALLBACK", "true").lower() in ("1", "true", "yes")
 
     def search_scholarships(self, scholarship_type: Optional[str] = None, state: Optional[str] = None) -> List[ScholarshipItem]:
         params = {}
@@ -30,13 +35,16 @@ class ScholarshipService:
                 local_results = [ScholarshipItem(**item) for item in resp.json()]
         except Exception as e:
             logger.warning(f"Local portal query error: {e}")
-            # Fallback to in-process mock portal when the HTTP portal is unavailable (test environments)
-            try:
-                from mock_portal.routes import list_scholarships as local_list
-                items = local_list(scholarship_type, state)
-                local_results = [ScholarshipItem(**item) for item in items]
-            except Exception:
-                pass
+            # Fallback to in-process mock portal when allowed by configuration.
+            if self.allow_mock_portal_fallback:
+                try:
+                    from mock_portal.routes import list_scholarships as local_list
+                    items = local_list(scholarship_type, state)
+                    local_results = [ScholarshipItem(**item) for item in items]
+                except Exception:
+                    pass
+            else:
+                logger.error("Mock portal fallback disabled; remote portal unavailable for search.")
 
         # Live external fetch integration fallback/enrichment
         live_external_items = self._fetch_live_external_scholarships(scholarship_type, state)
@@ -83,9 +91,11 @@ class ScholarshipService:
                 resp.raise_for_status()
                 return ScholarshipItem(**resp.json())
         except Exception:
-            # Fallback to in-process mock portal
-            from mock_portal.routes import get_scholarship_details as local_get
-            return ScholarshipItem(**local_get(scholarship_id))
+            if self.allow_mock_portal_fallback:
+                from mock_portal.routes import get_scholarship_details as local_get
+                return ScholarshipItem(**local_get(scholarship_id))
+            else:
+                raise RuntimeError("Remote portal unavailable and mock fallback disabled")
 
     def check_eligibility(self, student_id: str, scholarship_id: str) -> EligibilityResult:
         try:
@@ -97,20 +107,29 @@ class ScholarshipService:
                 resp.raise_for_status()
                 return EligibilityResult(**resp.json())
         except Exception:
-            # Fallback to in-process mock portal
-            try:
-                from mock_portal.routes import EligibilityCheckRequest, check_eligibility as local_check
-                req = EligibilityCheckRequest(student_id=student_id, scholarship_id=scholarship_id)
-                return EligibilityResult(**local_check(req))
-            except Exception:
-                # If the mock portal DB isn't initialized in the test, synthesize a permissive eligibility result
+            # If allowed, fall back to mock portal; otherwise fail closed.
+            if self.allow_mock_portal_fallback:
+                try:
+                    from mock_portal.routes import EligibilityCheckRequest, check_eligibility as local_check
+                    req = EligibilityCheckRequest(student_id=student_id, scholarship_id=scholarship_id)
+                    return EligibilityResult(**local_check(req))
+                except Exception:
+                    return EligibilityResult(
+                        student_id=student_id,
+                        scholarship_id=scholarship_id,
+                        scholarship_name="unknown",
+                        scholarship_type="government",
+                        is_eligible=False,
+                        rejection_reasons=["verification_unavailable"],
+                    )
+            else:
                 return EligibilityResult(
                     student_id=student_id,
                     scholarship_id=scholarship_id,
                     scholarship_name="unknown",
                     scholarship_type="government",
-                    is_eligible=True,
-                    rejection_reasons=[],
+                    is_eligible=False,
+                    rejection_reasons=["verification_unavailable"],
                 )
 
     def prepare_application_draft(self, student_id: str, scholarship_id: str) -> Dict[str, Any]:
@@ -123,9 +142,12 @@ class ScholarshipService:
                 resp.raise_for_status()
                 return resp.json()
         except Exception:
-            from mock_portal.routes import ApplicationDraftRequest, prepare_application_draft as local_prepare
-            req = ApplicationDraftRequest(student_id=student_id, scholarship_id=scholarship_id)
-            return local_prepare(req)
+            if self.allow_mock_portal_fallback:
+                from mock_portal.routes import ApplicationDraftRequest, prepare_application_draft as local_prepare
+                req = ApplicationDraftRequest(student_id=student_id, scholarship_id=scholarship_id)
+                return local_prepare(req)
+            else:
+                raise RuntimeError("Remote portal unavailable and mock fallback disabled for application draft")
 
     def submit_application(self, student_id: str, scholarship_id: str, intent_token: str, armoriq_decision: str = "ALLOW") -> Dict[str, Any]:
         app_id = f"APP-{student_id}-{scholarship_id}"
@@ -149,16 +171,22 @@ class ScholarshipService:
                     }
                 return resp.json()
         except Exception:
-            # Fallback to in-process mock portal submit handler
-            from mock_portal.routes import ApplicationSubmitRequest, submit_application as local_submit
-            req = ApplicationSubmitRequest(
-                application_id=app_id,
-                student_id=student_id,
-                scholarship_id=scholarship_id,
-                intent_token=intent_token,
-                armoriq_decision=armoriq_decision,
-            )
-            return local_submit(req)
+            if self.allow_mock_portal_fallback:
+                from mock_portal.routes import ApplicationSubmitRequest, submit_application as local_submit
+                req = ApplicationSubmitRequest(
+                    application_id=app_id,
+                    student_id=student_id,
+                    scholarship_id=scholarship_id,
+                    intent_token=intent_token,
+                    armoriq_decision=armoriq_decision,
+                )
+                return local_submit(req)
+            else:
+                return {
+                    "success": False,
+                    "status_code": 503,
+                    "detail": "Remote portal unavailable and mock fallback disabled",
+                }
 
     def track_application(self, application_id: str) -> ApplicationRecord:
         try:
@@ -167,5 +195,8 @@ class ScholarshipService:
                 resp.raise_for_status()
                 return ApplicationRecord(**resp.json())
         except Exception:
-            from mock_portal.routes import get_application_status as local_get
-            return ApplicationRecord(**local_get(application_id))
+            if self.allow_mock_portal_fallback:
+                from mock_portal.routes import get_application_status as local_get
+                return ApplicationRecord(**local_get(application_id))
+            else:
+                raise RuntimeError("Remote portal unavailable and mock fallback disabled for tracking")
