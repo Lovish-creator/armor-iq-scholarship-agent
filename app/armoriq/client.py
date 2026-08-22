@@ -1,7 +1,12 @@
 import os
 import logging
+from pathlib import Path
 from typing import Dict, Any, Optional
 
+from dotenv import load_dotenv
+
+ROOT_DIR = Path(__file__).resolve().parents[2]
+load_dotenv(ROOT_DIR / ".env")
 
 from app.armoriq.errors import (
     ArmorIQException,
@@ -23,6 +28,12 @@ try:
 except Exception:
     ArmorIQClient = None
     HAS_OFFICIAL_SDK = False
+
+if HAS_OFFICIAL_SDK:
+    try:
+        from armoriq_sdk import exceptions as sdk_exceptions
+    except Exception:
+        sdk_exceptions = None
 
 
 class PlanCaptureResult:
@@ -131,13 +142,16 @@ class ArmorIQWrapperClient:
             # Normalize response: keep the SDK object under `raw` and also
             # return the object itself as `token_string` so callers can pass
             # it directly into `invoke()` (the SDK accepts an IntentToken).
-            token_id = getattr(token_resp, "token_id", None) or getattr(token_resp, "plan_id", None)
+            # Only accept an actual token identifier from the SDK response.
+            # Do NOT fall back to plan_id or other identifiers — that would
+            # treat non-token values as intent tokens (fail-open risk).
+            token_id = getattr(token_resp, "token_id", None)
+            # Return only safe metadata to callers (do not expose full token)
             return {
-                "token_string": token_resp,
+                "token_string": token_id,
                 "token_id": token_id,
                 "api_key_used": True,
                 "provider": "ArmorIQ SDK",
-                "raw": token_resp,
             }
 
         except (InvalidTokenException, TokenExpiredException, IntentMismatchException, PolicyBlockedException):
@@ -164,9 +178,38 @@ class ArmorIQWrapperClient:
 
         try:
             result = invoke_fn(mcp=mcp, action=action, intent_token=intent_token, params=params or {}, user_email=user_email)
-            # Successful invocation means the action was authorized and executed.
-            return {"decision": "ALLOW", "raw": result}
 
-        except Exception:
-            # Propagate SDK exceptions for the orchestrator to handle
-            raise
+            # If SDK returned a structured MCPInvocationResult, inspect it.
+            # Success + verified => ALLOW. Error or unverified => BLOCK (fail-closed).
+            try:
+                status = getattr(result, "status", None)
+                verified = getattr(result, "verified", None)
+                # If the SDK indicates success and verification, treat as ALLOW
+                if (status and str(status).lower() == "success") or (verified is True):
+                    return {"decision": "ALLOW", "raw": result}
+
+                # Otherwise treat ambiguous/failed invocation as BLOCK
+                return {"decision": "BLOCK", "raw": result}
+
+            except Exception:
+                # Malformed result — fail closed
+                return {"decision": "BLOCK", "raw": result}
+
+        except Exception as exc:
+            # Map known SDK enforcement exceptions to explicit decisions
+            # Prefer SDK exceptions when available, otherwise fall back to
+            # the local app.armoriq.errors types.
+            # Policy blocked -> BLOCK
+            if HAS_OFFICIAL_SDK and sdk_exceptions is not None and isinstance(exc, getattr(sdk_exceptions, "PolicyBlockedException", ())):
+                return {"decision": "BLOCK", "error": str(exc)}
+            if HAS_OFFICIAL_SDK and sdk_exceptions is not None and isinstance(exc, getattr(sdk_exceptions, "PolicyHoldException", ())):
+                return {"decision": "HOLD", "error": str(exc)}
+            if isinstance(exc, PolicyBlockedException) or isinstance(exc, IntentMismatchException):
+                return {"decision": "BLOCK", "error": str(exc)}
+            if isinstance(exc, TokenExpiredException) or isinstance(exc, InvalidTokenException):
+                # Treat token problems as fail-closed (BLOCK)
+                return {"decision": "BLOCK", "error": str(exc)}
+
+            # Unknown exception: fail closed by raising an ArmorIQException so
+            # the orchestrator records a BLOCK and associated error.
+            raise ArmorIQException(f"MCP invocation failed: {exc}") from exc

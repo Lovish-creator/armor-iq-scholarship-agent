@@ -20,9 +20,26 @@ def load_env_file(path: str):
             key, val = line.split('=', 1)
             key = key.strip()
             val = val.strip()
+            # Strip surrounding quotes if present
+            if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
+                val = val[1:-1]
             # Set value if not present or present but empty
             if key not in os.environ or not os.environ.get(key):
                 os.environ[key] = val
+
+
+def ensure_env_defaults():
+    """Ensure minimal environment defaults so the agent can start locally.
+
+    Sets `ARMORIQ_BASE_URL` to the official default if not present, and a
+    sensible `PORTAL_BASE_URL` for the mock portal.
+    """
+    if not os.environ.get('ARMORIQ_BASE_URL'):
+        # SDK default backend endpoint
+        os.environ['ARMORIQ_BASE_URL'] = 'https://api.armoriq.ai'
+
+    if not os.environ.get('PORTAL_BASE_URL'):
+        os.environ['PORTAL_BASE_URL'] = 'http://127.0.0.1:8001'
 
 
 if __name__ == '__main__':
