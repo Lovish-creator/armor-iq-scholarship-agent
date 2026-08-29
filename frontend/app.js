@@ -678,9 +678,46 @@ function setPipelineStep(stepIdx, status) {
 // ============================================================
 // SCHOLARSHIP EXPLORER (WITH MULTI-SOURCE ATTRIBUTION)
 // ============================================================
+function updateScholarshipEligibility() {
+    const studentState = state.student.state || 'Punjab';
+    const studentIncome = state.student.income || 450000;
+    const studentField = (state.student.field || 'Engineering').toLowerCase();
+
+    state.scholarships.forEach(sch => {
+        let isEligible = true;
+        let reasons = [];
+
+        // 1. State Verification
+        const schState = sch.state || 'All India';
+        if (schState !== 'All India' && schState.toLowerCase() !== studentState.toLowerCase()) {
+            isEligible = false;
+            reasons.push(`State mismatch (Requires ${schState})`);
+        }
+
+        // 2. Income Verification
+        const limitNum = parseInt(String(sch.income_limit || '').replace(/[^0-9]/g, ''), 10) || 800000;
+        if (studentIncome > limitNum) {
+            isEligible = false;
+            reasons.push(`Income ₹${studentIncome.toLocaleString('en-IN')} > Limit ${sch.income_limit}`);
+        }
+
+        // 3. Field Verification
+        const schField = (sch.field || '').toLowerCase();
+        if (schField && !schField.includes('all') && !schField.includes(studentField) && !studentField.includes('engineering') && !studentField.includes('tech')) {
+            isEligible = false;
+            reasons.push(`Field mismatch`);
+        }
+
+        sch.eligible = isEligible;
+        sch.ineligible_reason = reasons.length > 0 ? reasons.join(' · ') : null;
+    });
+}
+
 function renderScholarships() {
     const grid = document.getElementById('scholarships-grid');
     if (!grid) return;
+
+    updateScholarshipEligibility();
 
     const filterType = document.getElementById('filter-type')?.value || 'all';
     const filterState = document.getElementById('filter-state')?.value || 'All India';
@@ -697,19 +734,24 @@ function renderScholarships() {
             ? `<span class="badge-chip chip-purple" style="font-size:0.7rem;">🏷️ Buddy4Study</span>`
             : `<span class="badge-chip chip-emerald" style="font-size:0.7rem;">🏛️ ${sch.source || 'NSP / National Portal'}</span>`;
 
+        const eligBadge = sch.eligible
+            ? `<span class="badge-chip chip-emerald" style="font-size:0.7rem; font-weight:700;">✓ ELIGIBLE</span>`
+            : `<span class="badge-chip chip-amber" style="font-size:0.7rem; font-weight:700;" title="${sch.ineligible_reason || 'Criteria mismatch'}">⚠️ INELIGIBLE</span>`;
+
         const sourceLink = sch.source_url 
             ? `<a href="${sch.source_url}" target="_blank" rel="noopener noreferrer" style="color:var(--brand-indigo); font-size:0.75rem; text-decoration:underline; display:inline-flex; align-items:center; gap:4px;">Official Portal / Apply ↗</a>`
             : '';
 
         return `
-        <div class="sch-card">
+        <div class="sch-card" style="${sch.eligible ? '' : 'opacity:0.85; border-color:rgba(242, 184, 75, 0.3);'}">
             <div>
-                <div class="sch-badge-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <div style="display:flex; gap:6px; align-items:center;">
+                <div class="sch-badge-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+                    <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
                         <span class="badge-chip ${sch.category === 'government' ? 'chip-emerald' : 'chip-purple'}">
                             ${sch.category.toUpperCase()}
                         </span>
                         ${sourceBadge}
+                        ${eligBadge}
                     </div>
                     <span class="font-mono text-muted" style="font-size:0.75rem;">${sch.state}</span>
                 </div>
@@ -719,6 +761,7 @@ function renderScholarships() {
                     <div><strong>Provider:</strong> ${sch.provider || 'Verified Organization'}</div>
                     <div><strong>Min Criteria:</strong> ${sch.min_cgpa} | Income &lt; ${sch.income_limit}</div>
                     <div><strong>Deadline:</strong> ${sch.deadline}</div>
+                    ${sch.ineligible_reason ? `<div style="color:var(--status-amber); font-size:0.75rem; margin-top:2px;"><strong>Mismatch:</strong> ${sch.ineligible_reason}</div>` : ''}
                     ${sourceLink ? `<div style="margin-top:4px;"><strong>Source:</strong> ${sourceLink}</div>` : ''}
                 </div>
             </div>
@@ -745,10 +788,11 @@ function fetchLiveScholarships() {
 }
 
 function checkSpecificEligibility(id) {
+    updateScholarshipEligibility();
     const sch = state.scholarships.find(s => s.id === id);
     if (!sch) return;
     if (sch.eligible) {
-        showToast(`✓ Eligible for '${sch.name}' based on student profile!`, 'emerald');
+        showToast(`✓ Eligible for '${sch.name}' (${state.student.name}, ${state.student.state})!`, 'emerald');
     } else {
         showToast(`⚠️ Ineligible: ${sch.ineligible_reason || 'Criteria mismatch'}`, 'amber');
     }
@@ -764,19 +808,33 @@ function prepareApplicationDraft(id) {
 // ============================================================
 // STUDENT PROFILE & DOCUMENT VAULT
 // ============================================================
-function saveStudentProfile() {
+async function saveStudentProfile() {
     const nameEl = document.getElementById('prof-name');
     const eduEl = document.getElementById('prof-edu');
     const stateEl = document.getElementById('prof-state');
     const incEl = document.getElementById('prof-income');
 
-    if (nameEl) state.student.name = nameEl.value;
-    if (eduEl) state.student.field = eduEl.value;
-    if (stateEl) state.student.state = stateEl.value;
-    if (incEl) state.student.income = parseInt(incEl.value, 10);
+    if (nameEl && nameEl.value) state.student.name = nameEl.value.trim();
+    if (eduEl && eduEl.value) state.student.field = eduEl.value.trim();
+    if (stateEl && stateEl.value) state.student.state = stateEl.value.trim();
+    if (incEl && incEl.value) state.student.income = parseInt(incEl.value, 10);
 
+    // Update Header
     const hdrName = document.getElementById('header-user-name');
     if (hdrName) hdrName.textContent = state.student.name;
+    const hdrRole = document.querySelector('.user-role');
+    if (hdrRole) hdrRole.textContent = `Student (${state.student.state})`;
+    const avatarRing = document.querySelector('.avatar-ring');
+    if (avatarRing && state.student.name) {
+        const initials = state.student.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        avatarRing.textContent = initials || 'GS';
+    }
+
+    // Update Dashboard Intent & Scope
+    const activePrompt = document.getElementById('dash-active-prompt');
+    if (activePrompt) {
+        activePrompt.textContent = `"Find government ${state.student.field.toLowerCase()} scholarships in ${state.student.state} I am eligible for and apply."`;
+    }
     const tgtState = document.getElementById('dash-target-state');
     if (tgtState) tgtState.textContent = state.student.state;
     const tgtField = document.getElementById('dash-target-field');
@@ -784,8 +842,44 @@ function saveStudentProfile() {
     const tgtInc = document.getElementById('dash-target-income');
     if (tgtInc) tgtInc.textContent = `₹${state.student.income.toLocaleString('en-IN')}`;
 
-    showToast('Student Profile Updated Successfully!', 'emerald');
-    addAuditLog('PROFILE_UPDATE', `Updated student profile for '${state.student.name}' (${state.student.state}).`, 'cyan');
+    // Auto-update filter dropdown if state exists in options
+    const filterStateSelect = document.getElementById('filter-state');
+    if (filterStateSelect) {
+        let optExists = Array.from(filterStateSelect.options).some(o => o.value.toLowerCase() === state.student.state.toLowerCase());
+        if (!optExists) {
+            const newOpt = document.createElement('option');
+            newOpt.value = state.student.state;
+            newOpt.textContent = state.student.state;
+            filterStateSelect.appendChild(newOpt);
+        }
+        filterStateSelect.value = state.student.state;
+    }
+
+    // Immediately re-evaluate eligibility and re-render scholarships catalog
+    updateScholarshipEligibility();
+    renderScholarships();
+
+    // Sync to backend database
+    try {
+        await fetch('/api/student/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                student_id: state.student.id || 'student-demo-001',
+                name: state.student.name,
+                education: state.student.field,
+                state: state.student.state,
+                annual_income: state.student.income,
+                category: 'General',
+                cgpa: 8.5
+            })
+        });
+    } catch (e) {
+        console.warn('Backend sync note:', e);
+    }
+
+    showToast(`Profile & Scholarships updated for ${state.student.name} (${state.student.state})!`, 'emerald');
+    addAuditLog('PROFILE_UPDATE', `Updated profile: ${state.student.name}, ${state.student.field}, ${state.student.state}, ₹${state.student.income}. Catalog refreshed.`, 'cyan');
 }
 
 async function handleDocumentUpload() {
