@@ -3,227 +3,860 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScholarShield AI — Live Gemini Reasoning & ArmorIQ Governance</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>ScholarShield — Intent-Governed Scholarship AI Agent (ArmorIQ Protected)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <div class="app-wrapper">
-        <!-- Top Navigation -->
-        <header class="navbar">
-            <div class="brand">
-                <div class="shield-logo">🛡️</div>
-                <div class="brand-text">
-                    <h1>ScholarShield <span class="badge-armoriq">Live Gemini 3.6 & ArmorIQ Pro Active</span></h1>
-                    <p class="tagline">Dynamic User Registration, Live Gemini Reasoning & Cryptographic ArmorIQ Governance</p>
+<body class="dark-theme">
+    <!-- Top Global App Bar -->
+    <header class="app-header">
+        <div class="header-left">
+            <div class="brand-badge">
+                <div class="shield-glyph">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L3 6V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V6L12 2Z" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="rgba(99,102,241,0.15)"/>
+                        <path d="M9 12L11 14L15 10" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="brand-titles">
+                    <div class="title-row">
+                        <span class="brand-name">ScholarShield</span>
+                        <span class="version-tag">v1.2.0</span>
+                        <span class="security-chip">
+                            <span class="chip-dot"></span>
+                            ArmorIQ Protected
+                        </span>
+                    </div>
+                    <span class="brand-sub">Autonomous Scholarship Agent &amp; Intent Governance Console</span>
                 </div>
             </div>
-            <div class="status-pills">
-                <span class="pill pill-green" id="web-status"><span class="dot"></span> Live Gemini LLM: Reasoning</span>
-                <span class="pill pill-purple" id="armoriq-status"><span class="dot"></span> ArmorIQ Key: ak_live_f247...</span>
-            </div>
-        </header>
+        </div>
 
-        <!-- Main Dashboard Grid -->
-        <main class="dashboard-grid">
-            <!-- Left Column: Custom Agent Order Form & Real Document Upload -->
-            <section class="card panel-setup">
-                <div class="card-header">
-                    <h2>🎯 Order the Autonomous Agent</h2>
-                    <p class="tagline">Enter your real student profile details to dynamically register and order live search.</p>
+        <!-- Central Navigation Tabs -->
+        <nav class="nav-tabs" id="nav-tabs">
+            <button class="nav-tab active" data-tab="dashboard">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                Dashboard
+            </button>
+            <button class="nav-tab" data-tab="scholarships">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                Scholarships
+            </button>
+            <button class="nav-tab" data-tab="policy">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                Intent &amp; Policy
+            </button>
+            <button class="nav-tab" data-tab="activity">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                Agent Stream
+            </button>
+            <button class="nav-tab" data-tab="audit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+                Audit Log
+            </button>
+            <button class="nav-tab" data-tab="infrastructure">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+                MCP Server
+            </button>
+            <button class="nav-tab" data-tab="profile">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                Student Profile
+            </button>
+        </nav>
+
+        <!-- Right System Indicators -->
+        <div class="header-right">
+            <div class="status-indicator-group">
+                <div class="status-node" title="ArmorIQ IAP Platform Connection">
+                    <span class="status-pulse pulse-green"></span>
+                    <span class="status-label">ArmorIQ: <strong id="header-armoriq-status">Connected</strong></span>
+                </div>
+                <div class="status-node" title="Scholarship MCP Server Boundary">
+                    <span class="status-pulse pulse-indigo"></span>
+                    <span class="status-label">MCP: <strong id="header-mcp-status">Active (4 Tools)</strong></span>
+                </div>
+            </div>
+            <div class="user-profile-badge" id="user-avatar-badge" title="Active Student Session">
+                <div class="avatar-ring">GS</div>
+                <div class="user-meta">
+                    <span class="user-name" id="header-user-name">Gurpreet Singh</span>
+                    <span class="user-role">Student (Punjab)</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main View Container -->
+    <main class="main-container">
+
+        <!-- ============================================================ -->
+        <!-- VIEW 1: DASHBOARD (PRIMARY CONTROL CONSOLE)                   -->
+        <!-- ============================================================ -->
+        <section class="tab-view active" id="view-dashboard">
+            <!-- Hero Intent Fabric Section -->
+            <div class="hero-fabric-card">
+                <div class="hero-fabric-content">
+                    <div class="hero-text-block">
+                        <div class="hero-eyebrow">
+                            <span class="eyebrow-badge">SECURE AUTONOMOUS ORCHESTRATION</span>
+                            <span class="eyebrow-meta">NIST P-256 ECDSA &amp; Merkle Inclusion Proofs</span>
+                        </div>
+                        <h1 class="hero-heading">Find scholarships.<br><span class="gradient-text">Let the agent handle the work.</span></h1>
+                        <p class="hero-desc">
+                            Your AI scholarship agent searches verified state databases, evaluates student eligibility, and drafts applications—with every tool execution cryptographically governed within signed policy boundaries.
+                        </p>
+                        <div class="hero-actions">
+                            <button class="btn-glow-primary" onclick="openOrderModal()">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+                                Launch Governed Agent
+                            </button>
+                            <button class="btn-outline" onclick="switchTab('policy')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                Inspect Policy &amp; Merkle Tree
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Control Fabric Canvas Visualizer -->
+                    <div class="hero-visual-block">
+                        <div class="fabric-canvas-wrapper">
+                            <canvas id="intent-fabric-canvas"></canvas>
+                            <div class="fabric-overlay-hud">
+                                <div class="hud-node" style="top: 15%; left: 8%;">
+                                    <span class="hud-tag">01. REQUEST</span>
+                                    <span class="hud-val">Student Intent</span>
+                                </div>
+                                <div class="hud-node" style="top: 15%; left: 45%;">
+                                    <span class="hud-tag">02. REASONING</span>
+                                    <span class="hud-val">Gemini Planner</span>
+                                </div>
+                                <div class="hud-node" style="top: 70%; left: 26%;">
+                                    <span class="hud-tag">03. GOVERNANCE</span>
+                                    <span class="hud-val">ArmorIQ Policy</span>
+                                </div>
+                                <div class="hud-node" style="top: 70%; left: 75%;">
+                                    <span class="hud-tag">04. MCP TOOL</span>
+                                    <span class="hud-val">FastMCP Execution</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <form id="order-form" onsubmit="event.preventDefault(); triggerAgentWorkflow();">
-                    <div class="grid-2col">
-                        <div class="form-group">
-                            <label for="student-name">Student Full Name:</label>
-                            <input type="text" id="student-name" class="input-text" value="Gurpreet Singh" required>
+                <!-- Live Metrics Ribbon -->
+                <div class="fabric-metrics-ribbon">
+                    <div class="metric-item">
+                        <span class="metric-label">ArmorIQ Platform Tier</span>
+                        <span class="metric-value font-mono" id="metric-platform-tier">Production (Live IAP)</span>
+                    </div>
+                    <div class="metric-divider"></div>
+                    <div class="metric-item">
+                        <span class="metric-label">Enforcement Engine</span>
+                        <span class="metric-value font-mono text-emerald">OPA Zero-Trust Policy</span>
+                    </div>
+                    <div class="metric-divider"></div>
+                    <div class="metric-item">
+                        <span class="metric-label">Proof of Non-Execution</span>
+                        <span class="metric-value font-mono text-cyan" id="metric-proof-status">100% Cryptographic Lock</span>
+                    </div>
+                    <div class="metric-divider"></div>
+                    <div class="metric-item">
+                        <span class="metric-label">MCP Server Transport</span>
+                        <span class="metric-value font-mono text-indigo">JSON-RPC 2.0 (Port 9000)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard 2-Column Grid -->
+            <div class="dashboard-columns-grid">
+                <!-- Left Column: Agent Control & Active Intent -->
+                <div class="dash-col-left">
+                    <!-- Agent Status & Active Intent Card -->
+                    <div class="glass-card">
+                        <div class="card-title-bar">
+                            <div class="title-with-icon">
+                                <span class="card-icon-box icon-indigo">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path><path d="M12 6v6l4 2"></path></svg>
+                                </span>
+                                <div>
+                                    <h3 class="card-h3">Agent Status &amp; Intent Boundary</h3>
+                                    <span class="card-sub">Active task parameters and policy constraints</span>
+                                </div>
+                            </div>
+                            <span class="badge-status badge-ready" id="agent-state-badge">
+                                <span class="status-pulse pulse-green"></span>
+                                Ready
+                            </span>
                         </div>
-                        <div class="form-group">
-                            <label for="student-edu">Field of Study / Degree:</label>
-                            <input type="text" id="student-edu" class="input-text" value="B.Tech Computer Science" required>
+
+                        <div class="intent-overview-panel">
+                            <div class="intent-text-box">
+                                <span class="box-label">CURRENT ACTIVE INTENT PROMPT</span>
+                                <p class="intent-prompt-display" id="dash-active-prompt">
+                                    "Find government engineering scholarships in Punjab I am eligible for and apply."
+                                </p>
+                            </div>
+
+                            <div class="intent-constraints-grid">
+                                <div class="constraint-pill">
+                                    <span class="c-key">State:</span>
+                                    <span class="c-val" id="dash-target-state">Punjab</span>
+                                </div>
+                                <div class="constraint-pill">
+                                    <span class="c-key">Field:</span>
+                                    <span class="c-val" id="dash-target-field">Engineering</span>
+                                </div>
+                                <div class="constraint-pill">
+                                    <span class="c-key">Type:</span>
+                                    <span class="c-val" id="dash-target-type">Government</span>
+                                </div>
+                                <div class="constraint-pill">
+                                    <span class="c-key">Income Limit:</span>
+                                    <span class="c-val" id="dash-target-income">₹4,50,000</span>
+                                </div>
+                            </div>
+
+                            <!-- Policy Allowed vs Restricted Capabilities -->
+                            <div class="policy-capabilities-box">
+                                <div class="cap-col">
+                                    <span class="cap-header text-emerald">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        Allowed MCP Actions
+                                    </span>
+                                    <ul class="cap-list font-mono">
+                                        <li>scholarship.search_scholarships</li>
+                                        <li>scholarship.check_eligibility</li>
+                                        <li>scholarship.prepare_application</li>
+                                        <li>scholarship.submit_application</li>
+                                    </ul>
+                                </div>
+                                <div class="cap-col">
+                                    <span class="cap-header text-rose">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                                        Restricted by Policy
+                                    </span>
+                                    <ul class="cap-list font-mono text-muted">
+                                        <li>private_grants.auto_submit</li>
+                                        <li>external_loans.apply</li>
+                                        <li>bank_account.transfer</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Test Scenario Presets -->
+                        <div class="test-scenarios-panel">
+                            <span class="panel-section-title">SECURITY SCENARIOS &amp; SIMULATION</span>
+                            <div class="scenario-toggle-item">
+                                <div class="toggle-control-col">
+                                    <input type="checkbox" id="dash-sim-drift" class="custom-toggle">
+                                </div>
+                                <div class="toggle-text-col">
+                                    <label for="dash-sim-drift" class="toggle-title text-amber">
+                                        Simulate Agent Intent Drift Attack (Triggers ArmorIQ BLOCK)
+                                    </label>
+                                    <p class="toggle-sub">
+                                        Agent is subverted to submit an unauthorized Private Foundation scheme (<code>SCH-PRV-GLOBAL-03</code>) outside the student's authorized government scope. ArmorIQ halts Step 4 with proof of non-execution.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="scenario-toggle-item">
+                                <div class="toggle-control-col">
+                                    <input type="checkbox" id="dash-sim-missing-doc" class="custom-toggle">
+                                </div>
+                                <div class="toggle-text-col">
+                                    <label for="dash-sim-missing-doc" class="toggle-title text-cyan">
+                                        Simulate Missing Document Demand (Triggers Upload Requirement)
+                                    </label>
+                                    <p class="toggle-sub">
+                                        Portal demands a mandatory Income Certificate PDF before application submission can proceed.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main Run Execution Button -->
+                        <div class="card-footer-action">
+                            <button class="btn-glow-primary btn-full-width" id="dash-run-btn" onclick="executeWorkflowFromDashboard()">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                <span id="dash-run-btn-text">Execute Governed Agent Workflow</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Live Pipeline Stream & Cryptographic Telemetry -->
+                <div class="dash-col-right">
+                    <!-- Live Cryptographic Telemetry Box -->
+                    <div class="glass-card telemetry-card">
+                        <div class="card-title-bar">
+                            <div class="title-with-icon">
+                                <span class="card-icon-box icon-purple">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L3 6V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V6L12 2Z"></path></svg>
+                                </span>
+                                <div>
+                                    <h3 class="card-h3">ArmorIQ Cryptographic Telemetry</h3>
+                                    <span class="card-sub">CSRG Intent Token &amp; NIST P-256 ECDSA Proofs</span>
+                                </div>
+                            </div>
+                            <span class="badge-chip chip-purple" id="telemetry-badge">Live Token Minted</span>
+                        </div>
+
+                        <div class="telemetry-data-grid font-mono">
+                            <div class="tel-row">
+                                <span class="tel-label">Token Identifier:</span>
+                                <span class="tel-val text-indigo" id="tel-token-id">9e3c8f865e1e4a628055d9bdee5bf99c</span>
+                            </div>
+                            <div class="tel-row">
+                                <span class="tel-label">Merkle Plan Hash:</span>
+                                <span class="tel-val text-cyan" id="tel-plan-hash">c1795523a262c9b27dc542f32c6b8a16f31f8a274150ffa0faf88ed9bd09b8db</span>
+                            </div>
+                            <div class="tel-row">
+                                <span class="tel-label">ECDSA Signature:</span>
+                                <span class="tel-val text-emerald" id="tel-ecdsa-sig">30450220025890efec529ee68bbef05a2de54e64a6dad3a361cfc629b8326410782aee2f...</span>
+                            </div>
+                            <div class="tel-row">
+                                <span class="tel-label">Assurance Status:</span>
+                                <span class="tel-val text-emerald" id="tel-assurance-status">✓ Cryptographically Bound &amp; Unexpired</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="grid-2col">
-                        <div class="form-group">
-                            <label for="target-state">Domicile State:</label>
-                            <select id="target-state" class="input-select">
-                                <option value="Punjab" selected>Punjab</option>
-                                <option value="Delhi">Delhi</option>
-                                <option value="Maharashtra">Maharashtra</option>
-                                <option value="Uttar Pradesh">Uttar Pradesh</option>
-                                <option value="All India">All India</option>
-                            </select>
+                    <!-- Security Alert Banner (Rendered on Drift / Block) -->
+                    <div class="security-banner-box hidden" id="dash-security-alert">
+                        <div class="sec-banner-header">
+                            <span class="sec-banner-icon">🚫</span>
+                            <div class="sec-banner-titles">
+                                <h4>ARMORIQ GOVERNANCE ENFORCEMENT TRIGGERED</h4>
+                                <span>Consequential Action Halted by Zero-Trust Policy Engine</span>
+                            </div>
+                            <span class="badge-blocked">BLOCKED</span>
                         </div>
-                        <div class="form-group">
-                            <label for="annual-income">Annual Family Income (₹):</label>
-                            <input type="number" id="annual-income" class="input-text" value="450000" required>
-                        </div>
-                    </div>
-
-                    <div class="grid-2col">
-                        <div class="form-group">
-                            <label for="scholarship-type">Target Category:</label>
-                            <select id="scholarship-type" class="input-select">
-                                <option value="government" selected>Government Schemes Only</option>
-                                <option value="private">Private Foundation Grants</option>
-                                <option value="all">All Web Schemes</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="student-cgpa">Min CGPA / Marks %:</label>
-                            <input type="text" id="student-cgpa" class="input-text" value="8.5 CGPA" required>
+                        <div class="sec-banner-body">
+                            <div class="sec-detail-row">
+                                <strong>Attempted Consequential Action:</strong>
+                                <code id="sec-alert-action">submit_application</code>
+                            </div>
+                            <div class="sec-detail-row">
+                                <strong>Target Resource:</strong>
+                                <code id="sec-alert-target">SCH-PRV-GLOBAL-03 (Private Award)</code>
+                            </div>
+                            <div class="sec-detail-row">
+                                <strong>Violation Reason:</strong>
+                                <span id="sec-alert-reason">Target scholarship is out-of-scope private foundation award.</span>
+                            </div>
+                            <div class="proof-lock-box">
+                                🔒 <strong>Proof of Non-Execution:</strong> Consequential MCP invocation was aborted. Portal SQLite database application count remained strictly <strong>0</strong>.
+                            </div>
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="raw-prompt">Agent Command Order:</label>
-                        <textarea id="raw-prompt" rows="3" class="input-text">Perform a live internet search for engineering scholarships in Punjab, verify my marksheet and income eligibility, prepare draft applications, and submit government scholarships automatically.</textarea>
-                    </div>
-
-                    <!-- TEST SCENARIO TOGGLES -->
-                    <div class="attack-toggle-box" style="background:rgba(245, 158, 11, 0.08); border-color:rgba(245, 158, 11, 0.4);">
-                        <div class="toggle-header">
-                            <input type="checkbox" id="simulate-missing-doc" class="toggle-checkbox">
-                            <label for="simulate-missing-doc" class="toggle-label" style="color:#fcd34d;">
-                                <strong>📄 Simulate Missing Document Demand (Triggers Upload Requirement)</strong>
-                            </label>
+                    <!-- Missing Document Demand Banner -->
+                    <div class="demand-banner-box hidden" id="dash-demand-alert">
+                        <div class="demand-banner-header">
+                            <span class="demand-banner-icon">📄</span>
+                            <div class="demand-banner-titles">
+                                <h4>MANDATORY DOCUMENT REQUIRED BY SCHOLARSHIP PORTAL</h4>
+                                <span>Eligibility Verification Incomplete</span>
+                            </div>
                         </div>
-                        <p class="toggle-desc" style="color:#fbbf24;">
-                            When checked, the Agent halts eligibility and demands that you upload an Income Certificate PDF before submission can proceed.
-                        </p>
-                    </div>
-
-                    <div class="attack-toggle-box">
-                        <div class="toggle-header">
-                            <input type="checkbox" id="simulate-out-of-scope" class="toggle-checkbox">
-                            <label for="simulate-out-of-scope" class="toggle-label">
-                                <strong>⚠️ Simulate Agent Intent Drift Attack (Triggers ArmorIQ BLOCK)</strong>
-                            </label>
+                        <div class="demand-banner-body">
+                            <p>The scholarship requires a valid certificate that has not yet been uploaded:</p>
+                            <div class="demanded-file-chip">
+                                ⚠️ Missing Certificate: <strong id="dash-demanded-doc">income_certificate.pdf</strong>
+                            </div>
+                            <p class="demand-hint">
+                                Go to the <strong>Student Profile</strong> tab or use the quick uploader below to fulfill this requirement.
+                            </p>
                         </div>
-                        <p class="toggle-desc">
-                            When checked, the Agent attempts to submit an out-of-scope Private Foundation scheme found on the web outside user's authorized intent boundary.
-                        </p>
                     </div>
 
-                    <button type="submit" class="btn-primary" id="run-btn">
-                        🌐 Register & Execute Governed Agent Workflow
+                    <!-- 5-Stage Action Pipeline & MCP Tool Stream -->
+                    <div class="glass-card pipeline-card">
+                        <div class="card-title-bar">
+                            <div class="title-with-icon">
+                                <span class="card-icon-box icon-cyan">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                                </span>
+                                <div>
+                                    <h3 class="card-h3">Execution Timeline &amp; MCP Stream</h3>
+                                    <span class="card-sub">Live 5-step Intent-to-Execution pipeline</span>
+                                </div>
+                            </div>
+                            <span class="badge-chip chip-live" id="stream-live-badge">Live Stream</span>
+                        </div>
+
+                        <!-- Pipeline Progress Steps -->
+                        <div class="pipeline-progress-bar">
+                            <div class="pipe-step step-done" id="pstep-1">
+                                <div class="step-circle">01</div>
+                                <span class="step-label">Request</span>
+                            </div>
+                            <div class="pipe-connector" id="pconn-1"></div>
+                            <div class="pipe-step step-done" id="pstep-2">
+                                <div class="step-circle">02</div>
+                                <span class="step-label">Plan</span>
+                            </div>
+                            <div class="pipe-connector" id="pconn-2"></div>
+                            <div class="pipe-step step-done" id="pstep-3">
+                                <div class="step-circle">03</div>
+                                <span class="step-label">ArmorIQ Token</span>
+                            </div>
+                            <div class="pipe-connector" id="pconn-3"></div>
+                            <div class="pipe-step step-done" id="pstep-4">
+                                <div class="step-circle">04</div>
+                                <span class="step-label">MCP Tools</span>
+                            </div>
+                            <div class="pipe-connector" id="pconn-4"></div>
+                            <div class="pipe-step step-done" id="pstep-5">
+                                <div class="step-circle">05</div>
+                                <span class="step-label">Audit Result</span>
+                            </div>
+                        </div>
+
+                        <!-- Step Stream Items List -->
+                        <div class="stream-items-container" id="dash-stream-container">
+                            <div class="stream-item-placeholder">
+                                <div class="spinner-dot"></div>
+                                <span>Ready to execute. Click <strong>"Execute Governed Agent Workflow"</strong> to begin live discovery, plan capture, and governed tool calls.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- VIEW 2: SCHOLARSHIP EXPLORER                                -->
+        <!-- ============================================================ -->
+        <section class="tab-view" id="view-scholarships">
+            <div class="section-header-row">
+                <div>
+                    <h2 class="section-h2">🎓 Verified Scholarship Explorer</h2>
+                    <p class="section-desc">Search and check eligibility against state portals and live discovered schemes</p>
+                </div>
+                <div class="search-filters-bar">
+                    <div class="filter-group">
+                        <label>Category:</label>
+                        <select id="filter-type" class="filter-select" onchange="filterScholarships()">
+                            <option value="all">All Schemes</option>
+                            <option value="government" selected>Government Only</option>
+                            <option value="private">Private Foundation</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>State:</label>
+                        <select id="filter-state" class="filter-select" onchange="filterScholarships()">
+                            <option value="All India">All States</option>
+                            <option value="Punjab" selected>Punjab</option>
+                            <option value="Maharashtra">Maharashtra</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Uttar Pradesh">Uttar Pradesh</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary-sm" onclick="fetchLiveScholarships()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                        Refresh Directory
                     </button>
-                </form>
-
-                <hr class="divider">
-
-                <!-- REAL DOCUMENT UPLOAD BOX -->
-                <div class="card-header">
-                    <h2>📄 Real Document Upload & AI Verification</h2>
-                    <p class="tagline">Upload your real PDF certificates here to satisfy portal demands</p>
                 </div>
-                <div class="doc-upload-box">
-                    <form id="upload-form" onsubmit="event.preventDefault(); handleDocumentUpload();">
-                        <div class="grid-2col">
+            </div>
+
+            <!-- Scholarship Cards Grid -->
+            <div class="scholarship-cards-grid" id="scholarships-grid">
+                <!-- Dynamically populated via app.js -->
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- VIEW 3: INTENT & POLICY ENGINE                              -->
+        <!-- ============================================================ -->
+        <section class="tab-view" id="view-policy">
+            <div class="section-header-row">
+                <div>
+                    <h2 class="section-h2">🛡️ ArmorIQ Intent Assurance &amp; Policy Graph</h2>
+                    <p class="section-desc">Cryptographic intent capture, policy binding, and zero-trust verification topology</p>
+                </div>
+                <span class="badge-chip chip-indigo">armoriq.yaml v1 Active</span>
+            </div>
+
+            <div class="policy-grid">
+                <!-- Visual Interactive Policy Topology Graph -->
+                <div class="glass-card policy-graph-card">
+                    <h3 class="card-h3 mb-4">Intent Enforcement Topology Graph</h3>
+                    <div class="topology-graph-container">
+                        <div class="top-node top-student">
+                            <span class="node-icon">👤</span>
+                            <span class="node-name">Student Prompt</span>
+                            <span class="node-sub">Raw Stated Goal</span>
+                        </div>
+                        <div class="top-arrow">➔</div>
+                        <div class="top-node top-agent">
+                            <span class="node-icon">🤖</span>
+                            <span class="node-name">AI Agent Planner</span>
+                            <span class="node-sub">Deterministic Plan</span>
+                        </div>
+                        <div class="top-arrow">➔</div>
+                        <div class="top-node top-armoriq">
+                            <span class="node-icon">🛡️</span>
+                            <span class="node-name">ArmorIQ Governance</span>
+                            <span class="node-sub">IAP Plan Capture &amp; Token</span>
+                        </div>
+                        <div class="top-fork">
+                            <div class="fork-branch branch-allow">
+                                <span class="fork-decision badge-allowed">ALLOW</span>
+                                <div class="top-arrow">➔</div>
+                                <div class="top-node top-mcp">
+                                    <span class="node-icon">⚡</span>
+                                    <span class="node-name">Scholarship MCP</span>
+                                    <span class="node-sub">Authorized Tool Execution</span>
+                                </div>
+                            </div>
+                            <div class="fork-branch branch-block">
+                                <span class="fork-decision badge-blocked">BLOCK</span>
+                                <div class="top-arrow">➔</div>
+                                <div class="top-node top-nonexec">
+                                    <span class="node-icon">🔒</span>
+                                    <span class="node-name">Zero-Execution Lock</span>
+                                    <span class="node-sub">Database Invariant Maintained</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Policy Configuration Viewer -->
+                <div class="glass-card policy-code-card">
+                    <div class="card-title-bar">
+                        <h3 class="card-h3">policies/armoriq.yaml Specification</h3>
+                        <span class="badge-chip chip-purple">Live Config</span>
+                    </div>
+                    <pre class="yaml-viewer font-mono"><code>version: v1
+
+identity:
+  api_key: $ARMORIQ_API_KEY
+  user_id: 5d2ea046-20fd-4605-ad88-cd3a5067dd7f
+  agent_id: eb106a0c-f528-4924-a60c-27be5960ea94
+
+environment: production
+
+proxy:
+  url: https://proxy.armoriq.ai
+  timeout: 30
+  max_retries: 3
+
+mcp_servers:
+  - id: scholarship
+    url: http://127.0.0.1:9000/mcp
+    auth:
+      type: none
+    description: Scholarship MCP server
+
+policy:
+  allow:
+    - scholarship.search_scholarships
+    - scholarship.check_eligibility
+    - scholarship.prepare_application
+    - scholarship.submit_application
+  deny: []
+
+intent:
+  ttl_seconds: 300
+  require_csrg: true</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- VIEW 4: AGENT STREAM & REASONING                            -->
+        <!-- ============================================================ -->
+        <section class="tab-view" id="view-activity">
+            <div class="section-header-row">
+                <div>
+                    <h2 class="section-h2">⚡ Real-Time Agent Stream &amp; LLM Reasoning</h2>
+                    <p class="section-desc">Inspect live Gemini 3.6 Flash thought tokens and exact MCP payload dispatches</p>
+                </div>
+            </div>
+
+            <!-- Gemini Thought Stream -->
+            <div class="glass-card mb-4">
+                <div class="card-title-bar">
+                    <div class="title-with-icon">
+                        <span class="card-icon-box icon-indigo">🧠</span>
+                        <div>
+                            <h3 class="card-h3">Gemini 3.6 Flash LLM Reasoning Stream</h3>
+                            <span class="card-sub">Internal reasoning trace captured prior to ArmorIQ plan signing</span>
+                        </div>
+                    </div>
+                    <span class="badge-chip chip-indigo">Live Chain-of-Thought</span>
+                </div>
+                <div class="thought-stream-box font-mono" id="llm-thought-stream">
+                    [Planner] Analyzing student profile: Gurpreet Singh, B.Tech Computer Science, Punjab, Income: ₹4,50,000.
+[Discovery] Initiating live web query for verified government engineering scholarships in Punjab...
+[Discovered] Found 2 eligible schemes: 'Punjab State Post-Matric SC/General Scholarship' and 'Merit-Cum-Means Technical Grant'.
+[Plan Synthesis] Generating deterministic 4-step execution plan adhering to ArmorIQ policy 'scholarship.*'.
+[Plan Capture] Dispatching plan to ArmorIQ IAP endpoint (https://api.armoriq.ai/capture-plan)...
+                </div>
+            </div>
+
+            <!-- Detailed Activity Feed -->
+            <div class="glass-card">
+                <h3 class="card-h3 mb-4">Chronological Tool Invocations</h3>
+                <div class="activity-feed" id="full-activity-feed">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- VIEW 5: AUDIT LOG & SECURITY CONSOLE                        -->
+        <!-- ============================================================ -->
+        <section class="tab-view" id="view-audit">
+            <div class="section-header-row">
+                <div>
+                    <h2 class="section-h2">🖥️ Cryptographic Security Audit Log</h2>
+                    <p class="section-desc">Immutable audit trail of all intent tokens, verification decisions, and execution proofs</p>
+                </div>
+                <button class="btn-outline" onclick="exportAuditLogJSON()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Export Audit JSON
+                </button>
+            </div>
+
+            <!-- Terminal Audit Console -->
+            <div class="terminal-card font-mono">
+                <div class="terminal-topbar">
+                    <div class="terminal-dots">
+                        <span class="t-dot t-red"></span>
+                        <span class="t-dot t-yellow"></span>
+                        <span class="t-dot t-green"></span>
+                    </div>
+                    <span class="terminal-title">armoriq-audit-stream://scholarshield/v1</span>
+                    <span class="terminal-time" id="terminal-clock">2026-08-29 07:30:00 UTC</span>
+                </div>
+                <div class="terminal-body" id="audit-terminal-body">
+                    <div class="t-line"><span class="t-timestamp">07:25:01.102</span> <span class="t-tag t-tag-cyan">SYSTEM_INIT</span> ArmorIQ SDK wrapper initialized in production mode. Backend: https://api.armoriq.ai</div>
+                    <div class="t-line"><span class="t-timestamp">07:25:01.105</span> <span class="t-tag t-tag-purple">MCP_DISCOVERY</span> Discovered FastMCP server 'scholarship' with 4 active tool endpoints.</div>
+                    <div class="t-line"><span class="t-timestamp">07:25:02.450</span> <span class="t-tag t-tag-indigo">CSRG_TOKEN_MINT</span> Minted IntentToken '9e3c8f865e1e4a628055d9bdee5bf99c'. ECDSA P-256 signature verified.</div>
+                    <div class="t-line"><span class="t-timestamp">07:25:03.112</span> <span class="t-tag t-tag-green">POLICY_ALLOW</span> Tool 'scholarship.search_scholarships' evaluated: ALLOWED by OPA rule memberRule.</div>
+                    <div class="t-line"><span class="t-timestamp">07:25:03.450</span> <span class="t-tag t-tag-green">POLICY_ALLOW</span> Tool 'scholarship.check_eligibility' evaluated: ALLOWED by OPA rule memberRule.</div>
+                    <div class="t-line"><span class="t-timestamp">07:25:03.880</span> <span class="t-tag t-tag-green">POLICY_ALLOW</span> Tool 'scholarship.prepare_application' evaluated: ALLOWED by OPA rule memberRule.</div>
+                    <div class="t-line"><span class="t-timestamp">07:25:04.220</span> <span class="t-tag t-tag-green">POLICY_ALLOW</span> Tool 'scholarship.submit_application' evaluated: ALLOWED. Portal write complete.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- VIEW 6: MCP INFRASTRUCTURE                                  -->
+        <!-- ============================================================ -->
+        <section class="tab-view" id="view-infrastructure">
+            <div class="section-header-row">
+                <div>
+                    <h2 class="section-h2">🔌 Model Context Protocol (MCP) Server</h2>
+                    <p class="section-desc">FastMCP tool server registry and JSON-RPC 2.0 transport boundary</p>
+                </div>
+                <span class="badge-chip chip-emerald">Port 9000 Active</span>
+            </div>
+
+            <div class="mcp-grid">
+                <div class="glass-card">
+                    <div class="card-title-bar">
+                        <h3 class="card-h3">Server Information</h3>
+                        <span class="badge-status badge-ready">Connected</span>
+                    </div>
+                    <div class="mcp-info-list font-mono">
+                        <div class="mcp-row"><span>Server ID:</span> <strong>scholarship</strong></div>
+                        <div class="mcp-row"><span>Transport Protocol:</span> <strong>Streamable HTTP / JSON-RPC 2.0</strong></div>
+                        <div class="mcp-row"><span>Local Endpoint:</span> <strong>http://127.0.0.1:9000/mcp</strong></div>
+                        <div class="mcp-row"><span>Auth Scheme:</span> <strong>None (Local Loopback)</strong></div>
+                        <div class="mcp-row"><span>Discovered Tools:</span> <strong>4 Tools Registered</strong></div>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <h3 class="card-h3 mb-3">Registered Tool Capabilities</h3>
+                    <div class="tool-list font-mono">
+                        <div class="tool-item">
+                            <div class="tool-name">scholarship.search_scholarships</div>
+                            <div class="tool-desc">Search verified state &amp; federal scholarships by type, state, and academic degree.</div>
+                        </div>
+                        <div class="tool-item">
+                            <div class="tool-name">scholarship.check_eligibility</div>
+                            <div class="tool-desc">Evaluate income limits, minimum CGPA, domicile proofs, and academic field criteria.</div>
+                        </div>
+                        <div class="tool-item">
+                            <div class="tool-name">scholarship.prepare_application</div>
+                            <div class="tool-desc">Generate student application payload, calculate financial grant, and verify documents.</div>
+                        </div>
+                        <div class="tool-item">
+                            <div class="tool-name">scholarship.submit_application <span class="badge-protected">PROTECTED</span></div>
+                            <div class="tool-desc">Consequential action requiring signed IntentToken and explicit ArmorIQ ALLOW decision.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- VIEW 7: STUDENT PROFILE & DOCUMENT VAULT                    -->
+        <!-- ============================================================ -->
+        <section class="tab-view" id="view-profile">
+            <div class="section-header-row">
+                <div>
+                    <h2 class="section-h2">👤 Student Profile &amp; Certificate Vault</h2>
+                    <p class="section-desc">Manage student credentials and upload verified PDF certificates for portal submissions</p>
+                </div>
+            </div>
+
+            <div class="profile-grid">
+                <!-- Profile Form -->
+                <div class="glass-card">
+                    <h3 class="card-h3 mb-4">Academic &amp; Financial Information</h3>
+                    <form id="profile-form" onsubmit="event.preventDefault(); saveStudentProfile();">
+                        <div class="form-grid-2col">
                             <div class="form-group">
-                                <label for="doc-type">Document Type:</label>
-                                <select id="doc-type" class="input-select">
+                                <label>Student Full Name</label>
+                                <input type="text" id="prof-name" class="input-text" value="Gurpreet Singh" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Field of Study / Degree</label>
+                                <input type="text" id="prof-edu" class="input-text" value="B.Tech Computer Science" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Domicile State</label>
+                                <select id="prof-state" class="input-select">
+                                    <option value="Punjab" selected>Punjab</option>
+                                    <option value="Delhi">Delhi</option>
+                                    <option value="Maharashtra">Maharashtra</option>
+                                    <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                    <option value="All India">All India</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Annual Family Income (₹)</label>
+                                <input type="number" id="prof-income" class="input-text" value="450000" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary-sm mt-4">
+                            Save Student Profile
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Document Upload & Certificate Vault -->
+                <div class="glass-card">
+                    <h3 class="card-h3 mb-4">Uploaded Document Certificates</h3>
+                    <form id="doc-upload-form" onsubmit="event.preventDefault(); handleDocumentUpload();">
+                        <div class="form-grid-2col mb-3">
+                            <div class="form-group">
+                                <label>Document Type</label>
+                                <select id="upload-doc-type" class="input-select">
                                     <option value="income_certificate">Income Certificate (PDF)</option>
                                     <option value="domicile_certificate">Domicile Proof (PDF)</option>
-                                    <option value="marksheet">Marksheet / Transcript (PDF)</option>
+                                    <option value="marksheet">Academic Marksheet (PDF)</option>
                                     <option value="id_proof">Aadhaar / ID Card (PDF)</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="doc-file">Select PDF File:</label>
-                                <input type="file" id="doc-file" class="input-text" accept=".pdf,.png,.jpg,.jpeg" required>
+                                <label>Select PDF File</label>
+                                <input type="file" id="upload-doc-file" class="input-text" accept=".pdf,.png,.jpg,.jpeg" required>
                             </div>
                         </div>
-                        <button type="submit" class="btn-secondary" id="upload-btn">
-                            📤 Upload & Fulfill Document Requirement
+                        <button type="submit" class="btn-outline btn-full-width" id="btn-upload-file">
+                            📤 Upload &amp; Fulfill Portal Document Demand
                         </button>
                     </form>
-                    <div class="upload-log hidden" id="upload-log"></div>
-                </div>
-            </section>
 
-            <!-- Right Column: Live Gemini Reasoning, ArmorIQ Telemetry & Stream -->
-            <section class="card panel-execution">
-                <div class="card-header flex-between">
-                    <h2>⚡ Live Reasoning Stream & Governance Execution</h2>
-                    <span class="badge-live" id="workflow-badge">Idle</span>
-                </div>
-
-                <!-- LIVE GEMINI 3.6 FLASH LLM REASONING BOX -->
-                <div class="gemini-reasoning-box hidden" id="gemini-reasoning-box" style="background:#0f172a; border:1px solid #3b82f6; border-radius:12px; padding:18px; margin-bottom:20px; box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);">
-                    <h3 style="font-size:0.95rem; color:#60a5fa; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                        <span>🧠 GEMINI 3.6 FLASH LIVE LLM REASONING THOUGHTS</span>
-                        <span class="badge-subtle" style="background:rgba(59,130,246,0.2); color:#93c5fd; padding:2px 8px; border-radius:12px;">Gemini 3.6 Flash Active</span>
-                    </h3>
-                    <div id="gemini-reasoning-text" style="font-size:0.85rem; color:#cbd5e1; line-height:1.6; white-space:pre-wrap; background:rgba(0,0,0,0.3); padding:12px; border-radius:8px;">Analyzing student profile...</div>
-                </div>
-
-                <!-- LIVE ARMORIQ API KEY TELEMETRY INSPECTOR -->
-                <div class="armoriq-telemetry-box" id="armoriq-telemetry-box" style="background:#121a29; border:1px solid #8b5cf6; border-radius:12px; padding:18px; margin-bottom:20px; box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);">
-                    <h3 style="font-size:0.95rem; color:#a78bfa; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                        <span>🛡️ ARMORIQ PLATFORM API TELEMETRY</span>
-                        <span class="badge-armoriq" style="font-size:0.7rem;" id="telemetry-key">ak_live_f247...</span>
-                    </h3>
-                    <div style="font-size:0.82rem; color:#cbd5e1; display:flex; flex-direction:column; gap:6px;">
-                        <div><strong>API Key Authenticated:</strong> <code id="tel-key-full" style="color:#c4b5fd;">ak_live_f247e9f2c035...</code></div>
-                        <div><strong>Platform Tier / Domain:</strong> <span style="color:#a78bfa;" id="tel-domain">armoriq.io (Pro Tier)</span></div>
-                        <div><strong>Merkle Tree Root Hash:</strong> <code id="tel-merkle" style="color:#60a5fa; font-size:0.75rem;">c1795523a262c9b27dc542f32c6b8a16f31f8a274150ffa0faf88ed9bd09b8db</code></div>
-                        <div><strong>ECDSA Signature:</strong> <code id="tel-sig" style="color:#34d399; font-size:0.75rem;">30450220025890efec529ee68bbef05a2de54e64a6dad3a361cfc629b8326410782aee2f...</code></div>
+                    <!-- Document List Table -->
+                    <div class="vault-table-wrapper mt-4">
+                        <table class="vault-table font-mono">
+                            <thead>
+                                <tr>
+                                    <th>Document</th>
+                                    <th>File Name</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vault-docs-tbody">
+                                <tr>
+                                    <td>Marksheet / Transcript</td>
+                                    <td>marksheet_12th.pdf</td>
+                                    <td><span class="badge-status badge-ready">Verified</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Domicile Certificate</td>
+                                    <td>domicile_punjab.pdf</td>
+                                    <td><span class="badge-status badge-ready">Verified</span></td>
+                                </tr>
+                                <tr id="vault-income-row">
+                                    <td>Income Certificate</td>
+                                    <td id="vault-income-fname">income_certificate.pdf</td>
+                                    <td id="vault-income-status"><span class="badge-status badge-ready">Verified</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
+            </div>
+        </section>
 
-                <!-- DOCUMENT DEMAND NOTIFICATION -->
-                <div class="demand-alert-box hidden" id="demand-alert" style="background:rgba(245, 158, 11, 0.15); border:1px solid #f59e0b; border-radius:12px; padding:18px; margin-bottom:20px;">
-                    <div class="alert-header" style="color: #fcd34d;">
-                        <span class="alert-icon" style="font-size:1.4rem;">📄</span>
-                        <h3 style="font-size:1.05rem;">MANDATORY DOCUMENT DEMANDED BY PORTAL</h3>
-                    </div>
-                    <div class="alert-body" style="font-size:0.88rem;">
-                        <p style="margin-bottom:8px;">The agent checked eligibility for <strong>State Engineering Scholarship</strong>, but found a missing document:</p>
-                        <p style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; color:#fcd34d; font-family:'JetBrains Mono', monospace;">
-                            ⚠️ MISSING DOCUMENT REQUIRED: <span id="demanded-doc-name">income_certificate.pdf</span>
-                        </p>
-                        <p style="margin-top:10px; color:#fbbf24;">
-                            👉 <strong>ACTION REQUIRED:</strong> Please select <strong>'Income Certificate (PDF)'</strong> on the left panel and click <strong>'Upload & Fulfill Document Requirement'</strong> to complete your application!
-                        </p>
-                    </div>
-                </div>
+    </main>
 
-                <!-- Security Violation Alert -->
-                <div class="security-alert-box hidden" id="security-alert">
-                    <div class="alert-header">
-                        <span class="alert-icon">🚫</span>
-                        <h3>ARMORIQ GOVERNANCE SECURITY EVENT DETECTED</h3>
-                    </div>
-                    <div class="alert-body">
-                        <p><strong>Attempted Action:</strong> <code id="alert-action">submit_application</code></p>
-                        <p><strong>Target Scholarship:</strong> <code id="alert-target">SCH-PRV-GLOBAL-03 (Private Award)</code></p>
-                        <p><strong>ArmorIQ Decision:</strong> <span class="badge-blocked">BLOCKED</span></p>
-                        <p><strong>Reason:</strong> <span id="alert-reason">Target action violates signed user intent constraint ('government' constraint required).</span></p>
-                        <div class="proof-badge-box">
-                            🔒 <strong>Proof of Non-Execution:</strong> Tool call aborted. Portal Database application submission count remained <strong>0</strong>.
-                        </div>
+    <!-- Modal: Launch Governed Agent Workflow -->
+    <div class="modal-overlay hidden" id="order-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="title-with-icon">
+                    <span class="card-icon-box icon-indigo">🚀</span>
+                    <div>
+                        <h3 class="card-h3">Order Autonomous Scholarship Agent</h3>
+                        <span class="card-sub">Configure search criteria and intent boundary</span>
                     </div>
                 </div>
-
-                <!-- Live Discovered Web Scholarships View -->
-                <div class="web-results-box hidden" id="web-results-box" style="margin-bottom:20px;">
-                    <h3 style="font-size:0.95rem; margin-bottom:10px; color:#60a5fa;">🌐 Discovered Live Internet Schemes:</h3>
-                    <div id="web-results-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+                <button class="modal-close-btn" onclick="closeOrderModal()">✕</button>
+            </div>
+            <form onsubmit="event.preventDefault(); submitOrderModal();">
+                <div class="form-grid-2col mb-3">
+                    <div class="form-group">
+                        <label>Student Full Name</label>
+                        <input type="text" id="modal-name" class="input-text" value="Gurpreet Singh" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Field of Study</label>
+                        <input type="text" id="modal-edu" class="input-text" value="B.Tech Computer Science" required>
+                    </div>
+                    <div class="form-group">
+                        <label>State</label>
+                        <select id="modal-state" class="input-select">
+                            <option value="Punjab" selected>Punjab</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Maharashtra">Maharashtra</option>
+                            <option value="Uttar Pradesh">Uttar Pradesh</option>
+                            <option value="All India">All India</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Annual Family Income (₹)</label>
+                        <input type="number" id="modal-income" class="input-text" value="450000" required>
+                    </div>
                 </div>
-
-                <!-- Execution Timeline -->
-                <div class="timeline-container">
-                    <div class="timeline-header">Execution Timeline & MCP Tool Stream</div>
-                    <ul class="timeline-list" id="timeline-list">
-                        <li class="timeline-placeholder">Ready to execute. Enter your command order on the left and click 'Register & Execute Governed Agent Workflow'.</li>
-                    </ul>
+                <div class="form-group mb-4">
+                    <label>Agent Natural Language Command</label>
+                    <textarea id="modal-prompt" rows="3" class="input-text">Find government engineering scholarships in Punjab I am eligible for and apply.</textarea>
                 </div>
-            </section>
-        </main>
+                <div class="modal-actions">
+                    <button type="button" class="btn-outline" onclick="closeOrderModal()">Cancel</button>
+                    <button type="submit" class="btn-glow-primary">Execute Governed Agent</button>
+                </div>
+            </form>
+        </div>
     </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toast-container"></div>
+
     <script src="app.js"></script>
 </body>
 </html>

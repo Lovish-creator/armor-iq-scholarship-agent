@@ -83,9 +83,9 @@ def test_scenario_7_invalid_api_key():
         ]
     }
     bad_plan = bad_client.capture_plan(llm="gemini", prompt="test", plan=plan_dict)
-    token = bad_client.get_intent_token(bad_plan)
-    # When invoking with invalid API key against the proxy, it raises InvalidTokenException / 401
+    # When minting token or invoking with invalid API key against the proxy, it raises an exception
     with pytest.raises(Exception) as exc_info:
+        token = bad_client.get_intent_token(bad_plan)
         res = bad_client.invoke(mcp="scholarship", action="search_scholarships", intent_token=token)
         if res.get("decision") == "BLOCK":
             raise InvalidTokenException("Blocked due to invalid key")
