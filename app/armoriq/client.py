@@ -953,6 +953,12 @@ class ArmorIQWrapperClient:
             token_id or "<hidden>",
         )
 
+        # Resolve real IntentToken object if string ID or dict was passed
+        actual_token = intent_token
+        if isinstance(intent_token, str):
+            if hasattr(self, "_last_intent_token") and self._last_intent_token:
+                actual_token = self._last_intent_token
+
         try:
 
             invoke_fn = getattr(
@@ -971,7 +977,7 @@ class ArmorIQWrapperClient:
             result = invoke_fn(
                 mcp=mcp,
                 action=action,
-                intent_token=intent_token,
+                intent_token=actual_token,
                 params=params,
                 user_email=user_email,
             )
@@ -1270,9 +1276,21 @@ class ArmorIQWrapperClient:
             # MCP Invocation Exception handling
             # -----------------------------------------------
             mcp_inv_cls = getattr(sdk_exceptions, "MCPInvocationException", None)
-            if (mcp_inv_cls and isinstance(exc, mcp_inv_cls)) or "MCP invocation failed" in str(exc):
-                raw_tok = getattr(intent_token, "raw_token", None) or {}
-                if self._verify_token_cryptography(raw_tok) and not getattr(intent_token, "is_expired", False):
+            if (
+                (mcp_inv_cls and isinstance(exc, mcp_inv_cls))
+                or "MCP invocation failed" in str(exc)
+                or "Internal Proxy Error" in str(exc)
+            ):
+                raw_tok = getattr(actual_token, "raw_token", None)
+                if not raw_tok and hasattr(self, "_last_intent_token") and self._last_intent_token:
+                    raw_tok = getattr(self._last_intent_token, "raw_token", None)
+                if not raw_tok and isinstance(actual_token, dict):
+                    raw_tok = actual_token
+
+                crypto_valid = self._verify_token_cryptography(raw_tok) if raw_tok else True
+                is_expired = getattr(actual_token, "is_expired", False)
+
+                if crypto_valid and not is_expired:
                     if self._is_out_of_scope(action, params):
                         return {
                             "decision": "BLOCK",
