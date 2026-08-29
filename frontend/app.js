@@ -424,18 +424,20 @@ function renderExecutionStream(data, container) {
 
 function appendStreamCard(title, toolName, desc, decision) {
     const container = document.getElementById('dash-stream-container');
+    if (!container) return;
     const isAllow = (decision === 'ALLOW');
+    const badgeText = isAllow ? '🛡️ ARMORIQ: ALLOW' : '🚫 ARMORIQ: BLOCK';
     const card = document.createElement('div');
     card.className = `stream-card ${isAllow ? 'card-allow' : 'card-block'}`;
     card.innerHTML = `
         <div class="stream-card-header">
             <span class="stream-tool-name">${toolName}</span>
-            <span class="${isAllow ? 'badge-allowed' : 'badge-blocked'}">${decision}</span>
+            <span class="${isAllow ? 'badge-allowed' : 'badge-blocked'}">${badgeText}</span>
         </div>
         <div class="stream-card-body">${desc}</div>
         <div class="stream-card-meta">
             <span>⏱️ ${new Date().toLocaleTimeString()}</span>
-            <span>🔒 ${isAllow ? 'Proof of Authorization' : 'Proof of Non-Execution'}</span>
+            <span>🔒 ${isAllow ? 'ArmorIQ Proof of Authorization' : 'ArmorIQ Proof of Non-Execution (DB Count = 0)'}</span>
         </div>
     `;
     container.appendChild(card);
