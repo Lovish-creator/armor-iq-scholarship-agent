@@ -36,6 +36,8 @@ const state = {
             income_limit: '₹5,00,000',
             required_docs: ['income_certificate.pdf', 'domicile_punjab.pdf', 'marksheet_12th.pdf'],
             deadline: '2026-11-30',
+            source: 'State Government Portal',
+            source_url: 'https://scholarships.punjab.gov.in',
             eligible: true
         },
         {
@@ -50,6 +52,8 @@ const state = {
             income_limit: '₹8,00,000',
             required_docs: ['marksheet_12th.pdf', 'income_certificate.pdf', 'admission_letter.pdf', 'tuition_fee_receipt.pdf', 'bank_passbook.pdf'],
             deadline: '2026-10-31',
+            source: 'National Scholarship Portal (NSP)',
+            source_url: 'https://scholarships.gov.in',
             eligible: true
         },
         {
@@ -64,6 +68,8 @@ const state = {
             income_limit: '₹8,00,000',
             required_docs: ['marksheet_12th.pdf', 'income_certificate.pdf', 'disability_certificate.pdf', 'admission_letter.pdf'],
             deadline: '2026-10-31',
+            source: 'National Scholarship Portal (NSP)',
+            source_url: 'https://scholarships.gov.in',
             eligible: true
         },
         {
@@ -78,6 +84,8 @@ const state = {
             income_limit: '₹4,50,000',
             required_docs: ['marksheet_12th.pdf', 'income_certificate.pdf', 'bonafide_certificate.pdf', 'fee_receipt.pdf'],
             deadline: '2026-10-31',
+            source: 'National Scholarship Portal (NSP)',
+            source_url: 'https://scholarships.gov.in',
             eligible: true
         },
         {
@@ -92,6 +100,8 @@ const state = {
             income_limit: '₹15,00,000',
             required_docs: ['marksheet_12th.pdf', 'income_certificate.pdf', 'admission_letter.pdf', 'bonafide_certificate.pdf'],
             deadline: '2026-10-05',
+            source: 'Buddy4Study',
+            source_url: 'https://www.buddy4study.com/page/reliance-foundation-undergraduate-scholarships',
             eligible: true,
             is_private: true
         },
@@ -107,6 +117,8 @@ const state = {
             income_limit: '₹4,00,000',
             required_docs: ['marksheet_12th.pdf', 'income_certificate.pdf', 'tuition_fee_receipt.pdf', 'admission_letter.pdf'],
             deadline: '2026-09-30',
+            source: 'Buddy4Study',
+            source_url: 'https://www.buddy4study.com/page/tata-capital-pankh-scholarship-programme',
             eligible: true,
             is_private: true
         },
@@ -122,6 +134,8 @@ const state = {
             income_limit: '₹6,00,000',
             required_docs: ['marksheet_12th.pdf', 'income_certificate.pdf', 'admission_letter.pdf', 'bonafide_certificate.pdf'],
             deadline: '2026-08-31',
+            source: 'Buddy4Study',
+            source_url: 'https://www.buddy4study.com/page/kotak-kanya-scholarship',
             eligible: true,
             is_private: true
         },
@@ -137,6 +151,8 @@ const state = {
             income_limit: '₹8,00,000',
             required_docs: ['marksheet_12th.pdf', 'marksheet_10th.pdf', 'income_certificate.pdf', 'fee_receipt.pdf'],
             deadline: '2026-10-31',
+            source: 'Vidyasaarathi',
+            source_url: 'https://www.vidyasaarathi.co.in/main/scholarship',
             eligible: true,
             is_private: true
         },
@@ -152,6 +168,8 @@ const state = {
             income_limit: '₹2,50,000',
             required_docs: ['marksheet_12th.pdf', 'income_certificate.pdf', 'admission_letter.pdf', 'fee_receipt.pdf'],
             deadline: '2026-10-31',
+            source: 'Buddy4Study',
+            source_url: 'https://www.buddy4study.com/page/hdfc-bank-parivartans-ecss-programme',
             eligible: true,
             is_private: true
         },
@@ -167,6 +185,8 @@ const state = {
             income_limit: '₹4,00,000',
             required_docs: ['domicile_delhi.pdf', 'income_certificate.pdf', 'marksheet_12th.pdf'],
             deadline: '2026-10-31',
+            source: 'State Government Portal',
+            source_url: 'https://edistrict.delhigovt.nic.in',
             eligible: false,
             ineligible_reason: 'Domicile requirement not matched (Punjab resident).'
         },
@@ -182,6 +202,8 @@ const state = {
             income_limit: 'None',
             required_docs: ['essay.pdf', 'recommendation.pdf'],
             deadline: '2026-12-31',
+            source: 'Global Endowment',
+            source_url: 'https://globaltechfoundation.org/scholarships',
             eligible: true,
             is_private: true
         }
@@ -654,7 +676,7 @@ function setPipelineStep(stepIdx, status) {
 }
 
 // ============================================================
-// SCHOLARSHIP EXPLORER
+// SCHOLARSHIP EXPLORER (WITH MULTI-SOURCE ATTRIBUTION)
 // ============================================================
 function renderScholarships() {
     const grid = document.getElementById('scholarships-grid');
@@ -669,24 +691,38 @@ function renderScholarships() {
         return true;
     });
 
-    grid.innerHTML = filtered.map(sch => `
+    grid.innerHTML = filtered.map(sch => {
+        const isB4S = (sch.source === 'Buddy4Study' || (sch.source_url && sch.source_url.includes('buddy4study.com')));
+        const sourceBadge = isB4S 
+            ? `<span class="badge-chip chip-purple" style="font-size:0.7rem;">🏷️ Buddy4Study</span>`
+            : `<span class="badge-chip chip-emerald" style="font-size:0.7rem;">🏛️ ${sch.source || 'NSP / National Portal'}</span>`;
+
+        const sourceLink = sch.source_url 
+            ? `<a href="${sch.source_url}" target="_blank" rel="noopener noreferrer" style="color:var(--brand-indigo); font-size:0.75rem; text-decoration:underline; display:inline-flex; align-items:center; gap:4px;">Official Portal / Apply ↗</a>`
+            : '';
+
+        return `
         <div class="sch-card">
             <div>
-                <div class="sch-badge-row">
-                    <span class="badge-chip ${sch.category === 'government' ? 'chip-emerald' : 'chip-purple'}">
-                        ${sch.category.toUpperCase()}
-                    </span>
+                <div class="sch-badge-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <span class="badge-chip ${sch.category === 'government' ? 'chip-emerald' : 'chip-purple'}">
+                            ${sch.category.toUpperCase()}
+                        </span>
+                        ${sourceBadge}
+                    </div>
                     <span class="font-mono text-muted" style="font-size:0.75rem;">${sch.state}</span>
                 </div>
                 <h3 class="sch-name">${sch.name}</h3>
                 <div class="sch-amount font-mono">${sch.amount}</div>
                 <div class="sch-criteria-list">
-                    <div><strong>Provider:</strong> ${sch.provider}</div>
+                    <div><strong>Provider:</strong> ${sch.provider || 'Verified Organization'}</div>
                     <div><strong>Min Criteria:</strong> ${sch.min_cgpa} | Income &lt; ${sch.income_limit}</div>
                     <div><strong>Deadline:</strong> ${sch.deadline}</div>
+                    ${sourceLink ? `<div style="margin-top:4px;"><strong>Source:</strong> ${sourceLink}</div>` : ''}
                 </div>
             </div>
-            <div class="sch-actions-row">
+            <div class="sch-actions-row" style="margin-top:14px; display:flex; gap:8px;">
                 <button class="btn-primary-sm" onclick="checkSpecificEligibility('${sch.id}')">
                     Check Eligibility
                 </button>
@@ -695,7 +731,8 @@ function renderScholarships() {
                 </button>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function filterScholarships() {

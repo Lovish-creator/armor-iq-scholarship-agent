@@ -56,19 +56,29 @@ Agents can reason freely, but **they cannot manufacture authority**. ScholarShie
 
 ---
 
-## 🛡️ High-Level System Architecture
+## 🛡️ High-Level System Architecture & Multi-Source Engine
+
+ScholarShield decouples data discovery from authority governance using a clean **Multi-Source Scholarship Engine** connected to ArmorIQ:
 
 ```mermaid
 flowchart TD
     classDef client fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#fff;
     classDef armoriq fill:#0f172a,stroke:#a855f7,stroke-width:2px,color:#fff;
+    classDef source fill:#1e1b4b,stroke:#818cf8,stroke-width:2px,color:#fff;
     classDef mcp fill:#1e1b4b,stroke:#6366f1,stroke-width:2px,color:#fff;
     classDef db fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#fff;
     classDef block fill:#450a0a,stroke:#ef4444,stroke-width:2px,color:#fff;
 
     A["👤 Student Intent Input<br/>Prompt + Constraints"]:::client --> B["🤖 AI Agent Orchestrator"]:::client
-    B --> C["🔍 Live Web Discovery Tool<br/>(DuckDuckGo / Web Scraper)"]:::client
-    C --> D["📋 Deterministic Planner<br/>(Gemini 3.6 Flash Reasoning)"]:::client
+    
+    subgraph MultiSource["🌐 Multi-Source Scholarship Engine (BaseScholarshipSource)"]
+        S1["🏛️ National & State Portals<br/>(NSP, Punjab, Delhi)"]:::source
+        S2["🏷️ Buddy4Study Adapter<br/>(Tata, Kotak, Reliance, HDFC)"]:::source
+        S3["🔍 Live Web Discovery Tool<br/>(DuckDuckGo / Open Feeds)"]:::source
+    end
+
+    B --> MultiSource
+    MultiSource -->|"Normalized ScholarshipItem"| D["📋 Deterministic Planner<br/>(Gemini 3.6 Flash Reasoning)"]:::client
     
     D -->|"1. capture_plan(llm, prompt, plan)"| E["🛡️ ArmorIQ Intent Engine (IAP)"]:::armoriq
     E -->|"2. get_intent_token(validity=300s)"| F["🔑 Signed Intent Token<br/>(NIST P-256 / Ed25519)"]:::armoriq
@@ -84,6 +94,11 @@ flowchart TD
 
     I -->|"5. Zero Mutation"| L["🔒 Proof of Non-Execution<br/>tool_execution_logs (executed: 0)"]:::block
 ```
+
+### 🏷️ Buddy4Study Integration & Source Attribution
+- **Replaceable Adapter Architecture**: Built on `BaseScholarshipSource`, allowing dynamic registration of scholarship portals without modifying core agent or security logic.
+- **Buddy4Study Adapter (`Buddy4StudySource`)**: Connects to Buddy4Study's active schemes (Tata Capital Pankh, Kotak Kanya, Reliance Foundation, HDFC ECSS, Rolls-Royce Unnati, etc.) with normalized eligibility parameters and transparent source attribution (`source: "Buddy4Study"`, `source_url: "https://www.buddy4study.com/page/..."`).
+- **Strict ArmorIQ Policy Enforcement**: Buddy4Study data streams through the same rigorous Intent Assurance Platform. If a student's declared intent specifies `government`, ArmorIQ intercepts and rejects any private Buddy4Study submission attempt before execution.
 
 ---
 
