@@ -29,11 +29,7 @@ COPY mock_portal/ ./mock_portal/
 COPY policies/ ./policies/
 
 # Expose server port
-EXPOSE 8080
+EXPOSE 8080 80 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8080/ || exit 1
-
-# Start FastAPI server
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Start FastAPI server using dynamic PORT environment variable
+CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]

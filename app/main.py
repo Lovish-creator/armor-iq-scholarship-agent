@@ -183,5 +183,12 @@ def list_scholarships(scholarship_type: Optional[str] = None, state: Optional[st
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/health")
+@app.get("/healthz")
+@app.get("/ping")
+def health_check():
+    return {"status": "ok", "service": "scholarshield", "armoriq": "active"}
+
 if __name__ == "__main__":
-    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
+    port = int(os.getenv("PORT", 8080))
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=False)
