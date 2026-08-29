@@ -10,7 +10,8 @@ WORKDIR /app
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PORT=8080
+    PORT=8080 \
+    HOST=0.0.0.0
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -20,7 +21,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && \
+    (pip install --no-cache-dir armoriq-sdk || true)
 
 # Copy application files
 COPY app/ ./app/
