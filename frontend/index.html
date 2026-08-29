@@ -3,531 +3,607 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScholarShield — ArmorIQ Intent-Governed Scholarship Agent</title>
+    <title>ScholarShield — Intent-Governed Scholarship AI Agent (ArmorIQ Protected)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     <style>
 /* ============================================================
-   SCHOLARSHIELD — OFFICIAL ARMORIQ DESIGN SYSTEM (INLINE)
-   Palette & Typography matched to https://armoriq.ai/
-   Base: #0A0A0C | Panels: #141418 | Accent: #E8602C (Flame Orange)
+   SCHOLARSHIELD AI — OFFICIAL ARMORIQ DESIGN SYSTEM (INLINE)
+   Palette & Aesthetics Matched to https://armoriq.ai/
+   Base: #0A0A0C | Surface: #141418 | Accent: #E8602C (Flame Orange)
    ============================================================ */
-
 :root {
-    --color-bg: #0A0A0C;
-    --color-bg-panel: #141418;
-    --color-bg-elevated: #1C1C22;
-    --color-bg-sunken: #050507;
+    --bg-base: #0A0A0C;
+    --bg-surface: #141418;
+    --bg-elevated: #1C1C22;
+    --bg-card-hover: #23232C;
+    --bg-glass: rgba(20, 20, 24, 0.85);
 
-    --color-accent: #E8602C;
-    --color-accent-hover: #F06E3B;
-    --color-accent-dim: rgba(232, 96, 44, 0.12);
-    --color-accent-border: rgba(232, 96, 44, 0.35);
-    --color-accent-glow: 0 0 24px rgba(232, 96, 44, 0.25);
+    --border-subtle: rgba(245, 245, 245, 0.08);
+    --border-card: rgba(245, 245, 245, 0.12);
+    --border-highlight: rgba(232, 96, 44, 0.40);
+    --border-cyan: rgba(56, 189, 248, 0.35);
 
-    --color-allow: #35D07F;
-    --color-allow-bg: rgba(53, 208, 127, 0.10);
-    --color-allow-border: rgba(53, 208, 127, 0.28);
+    --text-primary: #F5F5F5;
+    --text-secondary: #A0A0A8;
+    --text-muted: #6F6F78;
 
-    --color-threat-red: #EF4444;
-    --color-threat-bg: rgba(239, 68, 68, 0.10);
-    --color-threat-border: rgba(239, 68, 68, 0.28);
+    --brand-indigo: #E8602C;
+    --brand-indigo-glow: rgba(232, 96, 44, 0.30);
+    --brand-cyan: #38BDF8;
+    --brand-cyan-glow: rgba(56, 189, 248, 0.25);
+    --status-emerald: #35D07F;
+    --status-amber: #F59E0B;
+    --status-rose: #EF4444;
 
-    --color-cyan: #38BDF8;
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
 
-    --color-ink: #F5F5F5;
-    --color-ink-2: #A0A0A8;
-    --color-ink-muted: #6F6F78;
-    --color-line: rgba(245, 245, 245, 0.09);
-    --color-line-strong: rgba(245, 245, 245, 0.16);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
 
-    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
-    --font-mono: 'JetBrains Mono', 'Geist Mono', monospace;
-
-    --radius-sm: 4px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
+    --shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.55);
+    --shadow-glow-indigo: 0 0 30px rgba(232, 96, 44, 0.20);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
-body.armoriq-theme {
+body.dark-theme {
     font-family: var(--font-sans);
-    background-color: var(--color-bg);
-    color: var(--color-ink);
-    line-height: 1.5;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    line-height: 1.55;
     min-height: 100vh;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
 }
 
 .font-mono { font-family: var(--font-mono); }
-.text-accent { color: var(--color-accent) !important; }
-.text-allow { color: var(--color-allow) !important; }
-.text-threat { color: var(--color-threat-red) !important; }
-.text-muted { color: var(--color-ink-muted) !important; }
-.mt-2 { margin-top: 8px; }
+.text-emerald { color: var(--status-emerald) !important; }
+.text-cyan { color: var(--brand-cyan) !important; }
+.text-indigo { color: var(--brand-indigo) !important; }
+.text-amber { color: var(--status-amber) !important; }
+.text-rose { color: var(--status-rose) !important; }
+.text-muted { color: var(--text-muted) !important; }
+.mb-3 { margin-bottom: 12px; }
+.mb-4 { margin-bottom: 16px; }
+.mt-4 { margin-top: 16px; }
 .hidden { display: none !important; }
 
-.bg-grid-pattern {
-    position: fixed; inset: 0;
-    background-image: linear-gradient(var(--color-line) 1px, transparent 1px), linear-gradient(90deg, var(--color-line) 1px, transparent 1px);
-    background-size: 80px 80px; opacity: 0.35; pointer-events: none; z-index: 0;
+/* HEADER */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(10, 10, 12, 0.94);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 12px 28px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(16px);
+}
+.brand-badge { display: flex; align-items: center; gap: 12px; }
+.shield-glyph {
+    display: flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px;
+    background: rgba(232, 96, 44, 0.12);
+    border: 1px solid var(--border-highlight);
+    border-radius: var(--radius-md);
+    box-shadow: 0 0 15px var(--brand-indigo-glow);
+}
+.brand-titles { display: flex; flex-direction: column; }
+.title-row { display: flex; align-items: center; gap: 8px; }
+.brand-name { font-size: 1.12rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text-primary); }
+.security-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(53, 208, 127, 0.1); color: var(--status-emerald);
+    font-size: 0.72rem; font-weight: 600; padding: 2px 8px;
+    border-radius: 12px; border: 1px solid rgba(53, 208, 127, 0.25);
+    font-family: var(--font-mono);
+}
+.chip-dot { width: 6px; height: 6px; border-radius: 50%; background-color: var(--status-emerald); box-shadow: 0 0 8px var(--status-emerald); }
+.brand-sub { font-size: 0.76rem; color: var(--text-secondary); }
+
+/* TABS */
+.nav-tabs {
+    display: flex; align-items: center;
+    background: rgba(20, 20, 24, 0.75); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg); padding: 4px; gap: 4px;
+}
+.nav-tab {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: transparent; border: none; color: var(--text-secondary);
+    font-family: var(--font-sans); font-size: 0.85rem; font-weight: 500;
+    padding: 8px 14px; border-radius: var(--radius-md); cursor: pointer;
+    transition: all 0.2s ease;
+}
+.nav-tab:hover { color: var(--text-primary); background: rgba(255, 255, 255, 0.04); }
+.nav-tab.active {
+    color: #FFF; background: rgba(232, 96, 44, 0.18);
+    border: 1px solid var(--border-highlight); box-shadow: 0 0 12px rgba(232, 96, 44, 0.25);
+    font-weight: 600;
 }
 
-/* TOP HEADER */
-.armoriq-header {
-    display: flex; justify-content: space-between; align-items: center;
-    background: rgba(10, 10, 12, 0.95); border-bottom: 1px solid var(--color-line);
-    padding: 14px 32px; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(12px);
+.header-right { display: flex; align-items: center; gap: 16px; }
+.user-profile-badge {
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+    padding: 6px 12px; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-subtle); transition: background 0.2s ease;
 }
-.brand-row { display: flex; align-items: center; gap: 16px; }
-.brand-logo-armoriq {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 1.05rem; font-weight: 800; letter-spacing: 0.06em;
-    color: var(--color-ink); text-decoration: none;
+.user-profile-badge:hover { background: rgba(255, 255, 255, 0.07); }
+.avatar-ring {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--brand-indigo), var(--brand-cyan));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; font-weight: 700; color: #FFF;
 }
-.brand-badge-tag {
-    font-family: var(--font-mono); font-size: 0.68rem; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.14em; color: var(--color-accent);
-    background: var(--color-accent-dim); border: 1px solid var(--color-accent-border);
-    padding: 3px 8px; border-radius: var(--radius-sm);
-}
+.user-meta { display: flex; flex-direction: column; }
+.user-name { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); }
+.user-role { font-size: 0.7rem; color: var(--text-muted); }
 
-.header-nav {
-    display: flex; align-items: center; gap: 8px;
-    background: rgba(20, 20, 24, 0.7); border: 1px solid var(--color-line);
-    padding: 4px; border-radius: var(--radius-md);
-}
-.nav-tab-btn {
-    background: transparent; border: none; color: var(--color-ink-2);
-    font-family: var(--font-sans); font-size: 0.84rem; font-weight: 500;
-    padding: 7px 16px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s ease;
-}
-.nav-tab-btn:hover { color: var(--color-ink); background: rgba(255, 255, 255, 0.04); }
-.nav-tab-btn.active {
-    color: #FFF; background: var(--color-bg-elevated);
-    border: 1px solid var(--color-line-strong); font-weight: 600;
-}
+/* MAIN CONTAINER */
+.main-container { max-width: 1400px; margin: 0 auto; padding: 24px; position: relative; z-index: 1; }
+.tab-view { display: none; animation: fadeIn 0.2s ease forwards; }
+.tab-view.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-.header-status {
-    display: flex; align-items: center; gap: 10px;
-    font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-ink-muted);
+/* 3D INTENT FABRIC CANVAS */
+.fabric-container {
+    position: relative; width: 100%; height: 220px;
+    background: var(--bg-surface); border: 1px solid var(--border-card);
+    border-radius: var(--radius-xl); overflow: hidden; margin-bottom: 24px;
+    box-shadow: var(--shadow-soft);
 }
-.pulse-dot-accent {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--color-accent); box-shadow: 0 0 8px var(--color-accent);
+#intent-fabric-canvas { width: 100%; height: 100%; display: block; }
+.fabric-overlay { position: absolute; top: 20px; left: 24px; pointer-events: none; }
+.fabric-title {
+    font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em;
+    color: var(--text-primary); display: flex; align-items: center; gap: 8px;
 }
-
-/* MAIN WRAPPER */
-.main-wrapper { max-width: 1300px; margin: 0 auto; padding: 28px 32px; position: relative; z-index: 10; }
-.view-content { display: none; }
-.view-content.active { display: block; animation: fadeIn 0.15s ease forwards; }
-
-@keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
-
-/* HERO BANNER */
-.armoriq-hero-banner {
-    background: var(--color-bg-panel); border: 1px solid var(--color-line);
-    border-radius: var(--radius-lg); padding: 32px 36px; margin-bottom: 24px; position: relative;
+.fabric-sub { font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px; font-family: var(--font-mono); }
+.fabric-stats {
+    position: absolute; bottom: 16px; right: 24px;
+    display: flex; gap: 16px; font-family: var(--font-mono);
+    font-size: 0.72rem; color: var(--text-muted);
 }
-.corner-cross { position: absolute; font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-muted); pointer-events: none; }
-.corner-tl { top: 8px; left: 10px; }
-.corner-tr { top: 8px; right: 10px; }
-.corner-bl { bottom: 8px; left: 10px; }
-.corner-br { bottom: 8px; right: 10px; }
-
-.section-tag-mono {
-    font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.16em; color: var(--color-accent);
-    margin-bottom: 10px; display: inline-flex; align-items: center; gap: 8px;
+.stat-pill {
+    background: rgba(0, 0, 0, 0.45); border: 1px solid var(--border-subtle);
+    padding: 4px 10px; border-radius: var(--radius-sm); display: flex; align-items: center; gap: 6px;
 }
-.hero-main-title { font-size: 2.2rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1.2; margin-bottom: 12px; }
-.hero-main-desc { font-size: 0.95rem; color: var(--color-ink-2); max-width: 720px; line-height: 1.6; margin-bottom: 24px; }
-
-.hero-metrics-bar {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
-    background: var(--color-bg-sunken); border: 1px solid var(--color-line);
-    border-radius: var(--radius-md); padding: 16px 20px;
-}
-.metric-pill { display: flex; flex-direction: column; gap: 4px; }
-.metric-label { font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-ink-muted); }
-.metric-val { font-size: 1.15rem; font-weight: 700; font-family: var(--font-mono); color: var(--color-ink); }
 
 /* 2-COLUMN DASHBOARD GRID */
-.dashboard-columns { display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; }
-
-.armoriq-card {
-    background: var(--color-bg-panel); border: 1px solid var(--color-line);
-    border-radius: var(--radius-lg); padding: 24px; position: relative;
-    display: flex; flex-direction: column; gap: 16px;
+.dashboard-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 24px; }
+.glass-card {
+    background: var(--bg-surface); border: 1px solid var(--border-card);
+    border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-soft); position: relative;
 }
-.card-title-bar { display: flex; justify-content: space-between; align-items: center; }
-.card-title-h3 { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; }
-
-.intent-display-box {
-    background: var(--color-bg-sunken); border: 1px solid var(--color-accent-border);
-    border-radius: var(--radius-md); padding: 16px;
+.card-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.card-title-group { display: flex; align-items: center; gap: 12px; }
+.icon-box {
+    width: 38px; height: 38px; border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
 }
-.intent-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.intent-prompt-text { font-size: 0.92rem; font-weight: 500; color: var(--color-ink); line-height: 1.5; margin-bottom: 12px; }
-.criteria-badge-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 0.78rem; font-family: var(--font-mono); color: var(--color-ink-2); }
+.icon-indigo { background: rgba(232, 96, 44, 0.15); border: 1px solid var(--border-highlight); color: var(--brand-indigo); }
+.icon-cyan { background: rgba(56, 189, 248, 0.15); border: 1px solid var(--border-cyan); color: var(--brand-cyan); }
+.card-title { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
+.card-subtitle { font-size: 0.78rem; color: var(--text-secondary); }
 
-.test-toggles-container {
-    background: rgba(255, 255, 255, 0.02); border: 1px solid var(--color-line);
-    border-radius: var(--radius-md); padding: 14px; display: flex; flex-direction: column; gap: 10px;
+/* PREFERENCES BOX */
+.preferences-box {
+    background: rgba(0, 0, 0, 0.35); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md); padding: 16px; margin-bottom: 18px;
 }
-.toggle-row { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
-.toggle-input { width: 16px; height: 16px; accent-color: var(--color-accent); margin-top: 2px; }
-.toggle-texts { display: flex; flex-direction: column; gap: 2px; }
-.toggle-name { font-size: 0.82rem; font-weight: 600; color: var(--color-ink); }
-.toggle-desc { font-size: 0.74rem; color: var(--color-ink-muted); line-height: 1.35; }
+.box-heading {
+    font-size: 0.72rem; font-weight: 700; color: var(--brand-indigo);
+    letter-spacing: 0.06em; margin-bottom: 6px; font-family: var(--font-mono);
+}
+.active-prompt-text { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); line-height: 1.4; }
+.criteria-pills-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+.pill-item {
+    background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);
+    padding: 8px 12px; border-radius: var(--radius-sm); display: flex; flex-direction: column;
+}
+.pill-label { font-size: 0.7rem; color: var(--text-muted); }
+.pill-val { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); }
 
-.btn-armoriq-primary {
+/* TESTING PANEL */
+.testing-panel {
+    background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px;
+}
+.test-item { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+.test-toggle { width: 18px; height: 18px; accent-color: var(--brand-indigo); cursor: pointer; margin-top: 2px; }
+.test-texts { display: flex; flex-direction: column; gap: 2px; }
+.test-title { font-size: 0.85rem; font-weight: 700; cursor: pointer; }
+.test-desc { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; }
+
+/* BUTTONS */
+.btn-primary {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    background: linear-gradient(135deg, #E8602C 0%, #D44E1C 100%);
+    color: #FFF; border: 1px solid rgba(255, 255, 255, 0.15);
+    font-family: var(--font-sans); font-size: 0.95rem; font-weight: 600;
+    padding: 12px 24px; border-radius: var(--radius-md); cursor: pointer;
+    box-shadow: 0 4px 18px rgba(232, 96, 44, 0.35); transition: all 0.2s ease;
+}
+.btn-primary:hover {
+    background: linear-gradient(135deg, #F06E3B 0%, #E8602C 100%);
+    box-shadow: 0 6px 24px rgba(232, 96, 44, 0.55); transform: translateY(-1px);
+}
+.btn-secondary {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    background: var(--color-accent); color: #FFF; border: none;
-    font-family: var(--font-mono); font-size: 0.85rem; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.06em; padding: 12px 20px;
-    border-radius: var(--radius-sm); cursor: pointer; transition: background 0.15s ease;
+    background: transparent; border: 1px solid var(--border-card);
+    color: var(--text-secondary); font-family: var(--font-sans);
+    font-size: 0.9rem; font-weight: 500; padding: 11px 20px;
+    border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s ease;
 }
-.btn-armoriq-primary:hover { background: var(--color-accent-hover); box-shadow: var(--color-accent-glow); }
+.btn-secondary:hover { border-color: rgba(255, 255, 255, 0.25); color: var(--text-primary); background: rgba(255, 255, 255, 0.04); }
+.btn-block { width: 100%; }
 
-.btn-armoriq-secondary {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    background: transparent; border: 1px solid var(--color-line-strong);
-    color: var(--color-ink); font-family: var(--font-mono); font-size: 0.82rem;
-    font-weight: 500; padding: 9px 16px; border-radius: var(--radius-sm);
-    cursor: pointer; transition: all 0.15s ease;
-}
-.btn-armoriq-secondary:hover { border-color: var(--color-ink-2); background: rgba(255, 255, 255, 0.04); }
-.btn-full { width: 100%; }
-
-.verdict-blocked-banner {
-    background: var(--color-threat-bg); border: 1px solid var(--color-threat-border);
-    border-radius: var(--radius-md); padding: 16px;
-}
-.verdict-header {
-    display: flex; align-items: center; gap: 8px; font-family: var(--font-mono);
-    font-size: 0.82rem; font-weight: 700; color: var(--color-threat-red);
-    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;
-}
-.verdict-body-text { font-size: 0.82rem; color: var(--color-ink); line-height: 1.5; }
-
-.demand-alert-banner {
-    background: rgba(232, 96, 44, 0.08); border: 1px solid var(--color-accent-border);
-    border-radius: var(--radius-md); padding: 16px;
-}
-
-.pipeline-bar-clean {
+/* 5-STAGE PROGRESS TIMELINE */
+.progress-timeline {
     display: flex; align-items: center; justify-content: space-between;
-    background: var(--color-bg-sunken); border: 1px solid var(--color-line);
-    border-radius: var(--radius-md); padding: 10px 16px; font-family: var(--font-mono); font-size: 0.75rem;
+    background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-subtle);
+    padding: 12px 18px; border-radius: var(--radius-md); margin-bottom: 18px;
 }
-.pipe-step-item { display: flex; align-items: center; gap: 6px; color: var(--color-ink-muted); }
-.pipe-step-item.active { color: var(--color-accent); font-weight: 700; }
-.pipe-step-item.done { color: var(--color-allow); font-weight: 700; }
-.pipe-step-item.blocked { color: var(--color-threat-red); font-weight: 700; }
-.pipe-divider { color: var(--color-line-strong); }
+.timeline-step { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.step-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-subtle);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 700; font-family: var(--font-mono); color: var(--text-muted);
+}
+.step-name { font-size: 0.72rem; color: var(--text-muted); font-weight: 500; }
+.step-line { flex: 1; height: 2px; background: var(--border-subtle); margin: 0 8px; margin-bottom: 16px; }
+.timeline-step.step-active .step-num {
+    background: rgba(232, 96, 44, 0.25); border-color: var(--brand-indigo);
+    color: var(--brand-indigo); box-shadow: 0 0 10px rgba(232, 96, 44, 0.4);
+}
+.timeline-step.step-done .step-num { background: rgba(53, 208, 127, 0.2); border-color: var(--status-emerald); color: var(--status-emerald); }
+.timeline-step.step-blocked .step-num { background: rgba(239, 68, 68, 0.2); border-color: var(--status-rose); color: var(--status-rose); }
 
-.stream-list-container { display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto; }
-.stream-action-item {
-    background: var(--color-bg-sunken); border: 1px solid var(--color-line);
-    border-left: 3px solid var(--color-accent); border-radius: var(--radius-sm);
-    padding: 12px 14px; display: flex; flex-direction: column; gap: 4px;
+/* STREAM CARDS */
+.stream-container { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; }
+.stream-card {
+    background: rgba(0, 0, 0, 0.35); border: 1px solid var(--border-subtle);
+    border-left: 4px solid var(--brand-indigo); border-radius: var(--radius-md);
+    padding: 14px; display: flex; flex-direction: column; gap: 6px; animation: fadeIn 0.2s ease forwards;
 }
-.stream-action-item.item-allow { border-left-color: var(--color-allow); }
-.stream-action-item.item-block { border-left-color: var(--color-threat-red); }
-.stream-top-row { display: flex; justify-content: space-between; align-items: center; }
-.stream-title-text { font-size: 0.85rem; font-weight: 600; color: var(--color-ink); }
+.stream-card.card-allow { border-left-color: var(--status-emerald); }
+.stream-card.card-block { border-left-color: var(--status-rose); background: rgba(239, 68, 68, 0.05); }
+.stream-top { display: flex; justify-content: space-between; align-items: center; }
+.stream-action-name { font-size: 0.88rem; font-weight: 700; color: var(--text-primary); }
+.badge-allow {
+    background: rgba(53, 208, 127, 0.15); color: var(--status-emerald);
+    border: 1px solid rgba(53, 208, 127, 0.3); font-size: 0.72rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 4px; font-family: var(--font-mono);
+}
+.badge-block {
+    background: rgba(239, 68, 68, 0.15); color: var(--status-rose);
+    border: 1px solid rgba(239, 68, 68, 0.35); font-size: 0.72rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 4px; font-family: var(--font-mono);
+}
+.stream-desc { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; }
+.stream-foot { font-size: 0.72rem; color: var(--text-muted); display: flex; justify-content: space-between; }
 
-.badge-verdict-allow {
-    font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
-    background: var(--color-allow-bg); border: 1px solid var(--color-allow-border);
-    color: var(--color-allow); padding: 1px 6px; border-radius: var(--radius-sm);
+/* ALERT BANNERS */
+.alert-banner-block {
+    background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.4);
+    border-radius: var(--radius-md); padding: 16px; margin-bottom: 18px;
 }
-.badge-verdict-block {
-    font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
-    background: var(--color-threat-bg); border: 1px solid var(--color-threat-border);
-    color: var(--color-threat-red); padding: 1px 6px; border-radius: var(--radius-sm);
+.alert-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-weight: 700; color: var(--status-rose); font-size: 0.95rem; }
+.alert-body { font-size: 0.82rem; color: #FECDD3; line-height: 1.5; }
+.alert-banner-demand {
+    background: rgba(232, 96, 44, 0.08); border: 1px solid rgba(232, 96, 44, 0.4);
+    border-radius: var(--radius-md); padding: 16px; margin-bottom: 18px;
 }
-.stream-desc-text { font-size: 0.78rem; color: var(--color-ink-2); line-height: 1.4; }
-.stream-foot-row { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.68rem; color: var(--color-ink-muted); margin-top: 4px; }
+.alert-demand-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-weight: 700; color: var(--brand-indigo); font-size: 0.95rem; }
+.demand-pill { display: inline-block; background: rgba(0, 0, 0, 0.4); color: #FFD2B8; padding: 4px 10px; border-radius: 4px; font-family: var(--font-mono); margin: 6px 0; }
 
-.cards-grid-clean { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
-.sch-item-card {
-    background: var(--color-bg-panel); border: 1px solid var(--color-line);
-    border-radius: var(--radius-md); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;
+/* SCHOLARSHIP CARDS */
+.section-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.section-title { font-size: 1.3rem; font-weight: 700; color: var(--text-primary); }
+.section-sub { font-size: 0.85rem; color: var(--text-secondary); }
+.filter-row { display: flex; align-items: center; gap: 12px; }
+.select-input, .text-input {
+    background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+    color: var(--text-primary); font-family: var(--font-sans); font-size: 0.85rem;
+    padding: 8px 12px; border-radius: var(--radius-sm); outline: none;
 }
-.sch-item-card:hover { border-color: var(--color-line-strong); }
-.sch-head-name { font-size: 1.05rem; font-weight: 700; }
-.sch-amount-text { font-size: 1.15rem; font-weight: 700; font-family: var(--font-mono); color: var(--color-allow); }
+.select-input:focus, .text-input:focus { border-color: var(--brand-indigo); }
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
+.sch-box {
+    background: var(--bg-surface); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s ease;
+}
+.sch-box:hover { border-color: var(--border-highlight); transform: translateY(-2px); box-shadow: var(--shadow-soft); }
+.sch-title { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+.sch-price { font-size: 1.15rem; font-weight: 700; color: var(--status-emerald); font-family: var(--font-mono); margin-bottom: 12px; }
+.sch-details { font-size: 0.8rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px; }
+.sch-buttons { display: flex; gap: 8px; margin-top: auto; }
 
-.form-input-clean {
-    background: var(--color-bg-sunken); border: 1px solid var(--color-line-strong);
-    color: var(--color-ink); font-family: var(--font-sans); font-size: 0.85rem;
-    padding: 9px 12px; border-radius: var(--radius-sm); width: 100%; outline: none;
+/* MODALS & TOASTS */
+.modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000;
 }
-.form-input-clean:focus { border-color: var(--color-accent); }
+.modal-body {
+    background: var(--bg-surface); border: 1px solid var(--border-highlight);
+    border-radius: var(--radius-xl); padding: 32px; width: 100%; max-width: 580px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+}
+.modal-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-close { background: transparent; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
+.modal-footer-row { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+.toast-box { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; }
+.toast-msg {
+    background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+    padding: 12px 18px; border-radius: var(--radius-md); font-size: 0.85rem;
+    color: var(--text-primary); box-shadow: var(--shadow-soft); animation: fadeIn 0.2s ease forwards;
+}
 
-.toast-container-clean { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 2000; }
-.toast-item {
-    background: var(--color-bg-elevated); border: 1px solid var(--color-line-strong);
-    padding: 12px 18px; border-radius: var(--radius-sm); font-size: 0.82rem; color: var(--color-ink);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); animation: fadeIn 0.15s ease forwards;
-}
-
-@media (max-width: 900px) {
-    .dashboard-columns { grid-template-columns: 1fr; }
-    .hero-metrics-bar { grid-template-columns: 1fr 1fr; }
-}
+@media (max-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
-<body class="armoriq-theme">
-    <div class="bg-grid-pattern"></div>
-
-    <!-- ============================================================ -->
-    <!-- TOP HEADER (ARMORIQ AESTHETIC)                               -->
-    <!-- ============================================================ -->
-    <header class="armoriq-header">
-        <div class="brand-row">
-            <a href="#" class="brand-logo-armoriq" onclick="switchView('dashboard')">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 2L3 7V12C3 17.5 7 21.5 12 22C17 21.5 21 17.5 21 12V7L12 2Z" stroke="#E8602C" stroke-width="2.5"/>
-                    <circle cx="12" cy="12" r="3" fill="#E8602C"/>
-                </svg>
-                <span>ARMORIQ <span style="font-weight:400; color:var(--color-ink-2);">· ScholarShield</span></span>
-            </a>
-            <span class="brand-badge-tag">// INTENT ENGINE ACTIVE</span>
+<body class="dark-theme">
+    <!-- Top Header -->
+    <header class="app-header">
+        <div class="brand-badge">
+            <div class="shield-glyph">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E8602C" stroke-width="2.5"><path d="M12 2L3 6V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V6L12 2Z"/><circle cx="12" cy="12" r="3" fill="#E8602C"/></svg>
+            </div>
+            <div class="brand-titles">
+                <div class="title-row">
+                    <span class="brand-name">ScholarShield</span>
+                    <span class="security-chip">
+                        <span class="chip-dot"></span>
+                        // ARMORIQ GUARDRAILS ACTIVE
+                    </span>
+                </div>
+                <span class="brand-sub">Intent-Governed Autonomous Scholarship Agent</span>
+            </div>
         </div>
 
-        <!-- Navigation Tabs (Clean & Focused) -->
-        <nav class="header-nav">
-            <button class="nav-tab-btn active" data-tab="dashboard" onclick="switchView('dashboard')">
-                ⚡ Agent Console
+        <!-- 7 Full Navigation Tabs -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="dashboard" onclick="switchTab('dashboard')">
+                📊 Dashboard
             </button>
-            <button class="nav-tab-btn" data-tab="scholarships" onclick="switchView('scholarships')">
+            <button class="nav-tab" data-tab="scholarships" onclick="switchTab('scholarships')">
                 🎓 Scholarships
             </button>
-            <button class="nav-tab-btn" data-tab="vault" onclick="switchView('vault')">
-                👤 Profile &amp; Vault
+            <button class="nav-tab" data-tab="policy" onclick="switchTab('policy')">
+                🛡️ Intent &amp; Policy
             </button>
-            <button class="nav-tab-btn" data-tab="audit" onclick="switchView('audit')">
+            <button class="nav-tab" data-tab="activity" onclick="switchTab('activity')">
+                ⚡ Agent Stream
+            </button>
+            <button class="nav-tab" data-tab="audit" onclick="switchTab('audit')">
                 📋 Audit Log
+            </button>
+            <button class="nav-tab" data-tab="mcp" onclick="switchTab('mcp')">
+                🔌 MCP Server
+            </button>
+            <button class="nav-tab" data-tab="profile" onclick="switchTab('profile')">
+                👤 Profile &amp; Vault
             </button>
         </nav>
 
-        <div class="header-status">
-            <span class="pulse-dot-accent"></span>
-            <span>// ZERO-TRUST GOVERNANCE</span>
+        <!-- Right User Profile Badge -->
+        <div class="header-right">
+            <div class="user-profile-badge" onclick="switchTab('profile')">
+                <div class="avatar-ring">GS</div>
+                <div class="user-meta">
+                    <span class="user-name" id="header-user-name">Gurpreet Singh</span>
+                    <span class="user-role">Student (Punjab)</span>
+                </div>
+            </div>
         </div>
     </header>
 
-    <!-- ============================================================ -->
-    <!-- MAIN CONTENT CONTAINER                                       -->
-    <!-- ============================================================ -->
-    <main class="main-wrapper">
+    <!-- Main Container -->
+    <main class="main-container">
 
         <!-- ============================================================ -->
-        <!-- TAB 1: AGENT CONSOLE (CLEAN, POWERFUL & FOCUSED)             -->
+        <!-- TAB 1: DASHBOARD (WITH 3D INTENT FABRIC CANVAS & PIPELINE)   -->
         <!-- ============================================================ -->
-        <section class="view-content active" id="view-dashboard">
+        <section class="tab-view active" id="view-dashboard">
             
-            <!-- Hero Banner with ArmorIQ Corner Crosshairs -->
-            <div class="armoriq-hero-banner">
-                <span class="corner-cross corner-tl">+</span>
-                <span class="corner-cross corner-tr">+</span>
-                <span class="corner-cross corner-bl">+</span>
-                <span class="corner-cross corner-br">+</span>
-
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div>
-                        <div class="section-tag-mono">
-                            <span class="pulse-dot-accent"></span>
-                            // LIVE INTENT ASSURANCE FOR SCHOLARSHIPS
-                        </div>
-                        <h1 class="hero-main-title">
-                            Stop AI agents from <span class="text-accent">going rogue.</span>
-                        </h1>
-                        <p class="hero-main-desc">
-                            ScholarShield uses <strong>ArmorIQ runtime governance</strong> to discover, evaluate, and draft scholarship applications while cryptographically guaranteeing the agent never exceeds student intent.
-                        </p>
+            <!-- 3D Interactive Intent Fabric Canvas (Spline Topology Element) -->
+            <div class="fabric-container">
+                <canvas id="intent-fabric-canvas"></canvas>
+                <div class="fabric-overlay">
+                    <div class="fabric-title">
+                        <span>🛡️ Intent Assurance Topology</span>
+                        <span class="security-chip" style="font-size:0.65rem;">LIVE GOVERNANCE FABRIC</span>
                     </div>
-
-                    <div style="text-align:right;" class="font-mono text-muted">
-                        <div style="font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase;">// Verified Actions</div>
-                        <div style="font-size:1.6rem; font-weight:700; color:var(--color-accent); margin-top:4px;">1,284,302</div>
+                    <div class="fabric-sub">
+                        Cryptographic binding between Student Intent · Gemini 3.6 · ArmorIQ Policy Sentry · FastMCP Tools
                     </div>
                 </div>
-
-                <!-- 4 Simple Status Metric Pills -->
-                <div class="hero-metrics-bar">
-                    <div class="metric-pill">
-                        <span class="metric-label">// INTENT TOKEN</span>
-                        <span class="metric-val text-accent">INT-8F92A1</span>
+                <div class="fabric-stats">
+                    <div class="stat-pill">
+                        <span class="chip-dot"></span>
+                        <span>CSRG Token: <strong class="text-indigo" id="canvas-token-status">Active (NIST P-256)</strong></span>
                     </div>
-                    <div class="metric-pill">
-                        <span class="metric-label">// ENFORCEMENT</span>
-                        <span class="metric-val text-allow">ZERO-TRUST</span>
-                    </div>
-                    <div class="metric-pill">
-                        <span class="metric-label">// CONNECTED PORTALS</span>
-                        <span class="metric-val">6 SCHEMES</span>
-                    </div>
-                    <div class="metric-pill">
-                        <span class="metric-label">// UNAUTHORIZED WRITES</span>
-                        <span class="metric-val text-allow">0 WRITES</span>
+                    <div class="stat-pill">
+                        <span>Merkle Root: <strong class="text-cyan">c1795523a262...</strong></span>
                     </div>
                 </div>
             </div>
 
-            <!-- 2-Column Clean Action Grid -->
-            <div class="dashboard-columns">
-
-                <!-- LEFT COLUMN: Search Intent & Controls -->
-                <div class="armoriq-card">
-                    <span class="corner-cross corner-tl">+</span>
-                    <span class="corner-cross corner-tr">+</span>
-                    <span class="corner-cross corner-bl">+</span>
-                    <span class="corner-cross corner-br">+</span>
-
-                    <div class="card-title-bar">
-                        <h3 class="card-title-h3">Declared Student Intent</h3>
-                        <span class="brand-badge-tag" style="font-size:0.65rem;">SIGNED PLAN</span>
+            <!-- 2-Column Action & Telemetry Grid -->
+            <div class="dashboard-grid">
+                <!-- Left: Preferences & Safety Tests -->
+                <div class="glass-card">
+                    <div class="card-header-bar">
+                        <div class="card-title-group">
+                            <span class="icon-box icon-indigo">🎯</span>
+                            <div>
+                                <h3 class="card-title">Declared Student Intent</h3>
+                                <span class="card-subtitle">Preferences authorized for the AI agent</span>
+                            </div>
+                        </div>
+                        <span class="security-chip" id="agent-state-badge">Ready</span>
                     </div>
 
-                    <!-- Intent Prompt Box -->
-                    <div class="intent-display-box">
-                        <div class="intent-header-row">
-                            <span class="section-tag-mono" style="margin-bottom:0;">// AUTHORIZED SCOPE</span>
-                            <span class="font-mono text-allow" style="font-size:0.72rem;">✓ ACTIVE</span>
-                        </div>
-                        <p class="intent-prompt-text" id="dash-active-prompt">
-                            "Find government engineering scholarships in Punjab I am eligible for and apply safely."
+                    <div class="preferences-box">
+                        <div class="box-heading">// AUTHORIZED SEARCH SCOPE</div>
+                        <p class="active-prompt-text" id="dash-active-prompt">
+                            "Find government engineering scholarships in Punjab I am eligible for and apply."
                         </p>
-                        <div class="criteria-badge-grid">
-                            <div>📍 State: <strong class="text-ink" id="dash-target-state">Punjab</strong></div>
-                            <div>📚 Field: <strong class="text-ink">B.Tech CS</strong></div>
-                            <div>🏛️ Scope: <strong class="text-ink">Government Only</strong></div>
-                            <div>💰 Income: <strong class="text-ink">&lt; ₹4,50,000</strong></div>
+                        <div class="criteria-pills-row">
+                            <div class="pill-item">
+                                <span class="pill-label">State:</span>
+                                <span class="pill-val" id="dash-target-state">Punjab</span>
+                            </div>
+                            <div class="pill-item">
+                                <span class="pill-label">Field:</span>
+                                <span class="pill-val" id="dash-target-field">Engineering</span>
+                            </div>
+                            <div class="pill-item">
+                                <span class="pill-label">Type:</span>
+                                <span class="pill-val" id="dash-target-type">Government</span>
+                            </div>
+                            <div class="pill-item">
+                                <span class="pill-label">Income Limit:</span>
+                                <span class="pill-val" id="dash-target-income">₹4,50,000</span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Interactive Safety Demonstrations -->
-                    <div class="test-toggles-container">
-                        <span class="section-tag-mono" style="margin-bottom:4px;">// TEST SECURITY DEMONSTRATIONS</span>
+                    <!-- Safety Demonstration Toggles -->
+                    <div class="testing-panel">
+                        <div class="box-heading">// INTERACTIVE DEFENSE SIMULATION</div>
                         
-                        <label class="toggle-row">
-                            <input type="checkbox" id="dash-sim-drift" class="toggle-input">
-                            <div class="toggle-texts">
-                                <span class="toggle-name text-accent">Simulate Out-of-Scope Attack (Watch ArmorIQ Block)</span>
-                                <span class="toggle-desc">Agent attempts to submit an unauthorized private grant. ArmorIQ will intercept before database write.</span>
+                        <div class="test-item">
+                            <input type="checkbox" id="dash-sim-drift" class="test-toggle">
+                            <div class="test-texts">
+                                <label for="dash-sim-drift" class="test-title text-indigo">
+                                    Simulate Attack / Scope Drift (Watch ArmorIQ Block)
+                                </label>
+                                <span class="test-desc">
+                                    The agent attempts to apply for an unauthorized private grant. ArmorIQ will intercept and block the action before database write.
+                                </span>
                             </div>
-                        </label>
+                        </div>
 
-                        <label class="toggle-row">
-                            <input type="checkbox" id="dash-sim-missing-doc" class="toggle-input">
-                            <div class="toggle-texts">
-                                <span class="toggle-name text-cyan">Simulate Missing Document Requirement</span>
-                                <span class="toggle-desc">Portal demands mandatory income certificate before submission can proceed.</span>
+                        <div class="test-item">
+                            <input type="checkbox" id="dash-sim-missing-doc" class="test-toggle">
+                            <div class="test-texts">
+                                <label for="dash-sim-missing-doc" class="test-title text-cyan">
+                                    Simulate Missing Document Requirement
+                                </label>
+                                <span class="test-desc">
+                                    The portal requires an Income Certificate PDF before submission can proceed.
+                                </span>
                             </div>
-                        </label>
-                    </div>
-
-                    <!-- Security Alert (Shown only when blocked) -->
-                    <div class="verdict-blocked-banner hidden" id="dash-security-alert">
-                        <div class="verdict-header">
-                            <span>🚫</span>
-                            <span>ARMORIQ VERDICT: ACTION INTERCEPTED</span>
                         </div>
-                        <p class="verdict-body-text">
-                            The agent attempted to submit to private award <code>SCH-PRV-GLOBAL-03</code>. 
-                            <strong>ArmorIQ blocked the consequential write</strong> because it violated student intent.
-                            <br><span class="font-mono text-allow" style="display:inline-block; margin-top:6px;">🔒 Invariant preserved: Portal application count == 0</span>
-                        </p>
                     </div>
 
-                    <!-- Missing Document Demand Banner -->
-                    <div class="demand-alert-banner hidden" id="dash-demand-alert">
-                        <div class="verdict-header" style="color:var(--color-accent);">
-                            <span>📄</span>
-                            <span>VERIFICATION DEMAND: CERTIFICATE REQUIRED</span>
-                        </div>
-                        <p class="verdict-body-text">
-                            The scholarship requires: <strong class="font-mono text-accent">income_certificate.pdf</strong>.<br>
-                            Please upload your document in the <strong>Profile &amp; Vault</strong> tab.
-                        </p>
-                    </div>
-
-                    <!-- Main Run Button -->
-                    <button class="btn-armoriq-primary btn-full" id="dash-run-btn" onclick="executeWorkflowFromDashboard()">
+                    <!-- Action Button -->
+                    <button class="btn-primary btn-block" id="dash-run-btn" onclick="executeWorkflowFromDashboard()">
                         ⚡ Run Safe Scholarship Agent
                     </button>
                 </div>
 
-                <!-- RIGHT COLUMN: Pipeline & Live Progress -->
-                <div class="armoriq-card">
-                    <span class="corner-cross corner-tl">+</span>
-                    <span class="corner-cross corner-tr">+</span>
-                    <span class="corner-cross corner-bl">+</span>
-                    <span class="corner-cross corner-br">+</span>
-
-                    <div class="card-title-bar">
-                        <h3 class="card-title-h3">Runtime Execution &amp; Decisions</h3>
-                        <span class="font-mono text-muted" style="font-size:0.72rem;">// REAL-TIME FEED</span>
-                    </div>
-
-                    <!-- 4-Step Pipeline -->
-                    <div class="pipeline-bar-clean">
-                        <div class="pipe-step-item active" id="pstep-1">
-                            <span>01</span>
-                            <span>DISCOVER</span>
+                <!-- Right: Live Progress & Safety Interceptions -->
+                <div class="glass-card">
+                    <!-- Block Alert Banner (Hidden by default) -->
+                    <div class="alert-banner-block hidden" id="dash-security-alert">
+                        <div class="alert-head">
+                            <span>🚫</span>
+                            <span>Action Blocked by ArmorIQ Guardrails</span>
                         </div>
-                        <span class="pipe-divider">→</span>
-                        <div class="pipe-step-item" id="pstep-2">
-                            <span>02</span>
-                            <span>ELIGIBILITY</span>
-                        </div>
-                        <span class="pipe-divider">→</span>
-                        <div class="pipe-step-item" id="pstep-3">
-                            <span>03</span>
-                            <span>VERIFY</span>
-                        </div>
-                        <span class="pipe-divider">→</span>
-                        <div class="pipe-step-item" id="pstep-4">
-                            <span>04</span>
-                            <span>SUBMIT</span>
+                        <div class="alert-body">
+                            The AI agent attempted to submit an unauthorized private scholarship (<code>SCH-PRV-GLOBAL-03</code>). 
+                            <strong>ArmorIQ intercepted the request</strong> and blocked it before submission. Zero unauthorized applications were made!
+                            <div class="font-mono text-emerald mt-2">🔒 Proof of Non-Execution: Total submissions == 0</div>
                         </div>
                     </div>
 
-                    <!-- Live Stream Container -->
-                    <div class="stream-list-container" id="dash-stream-container">
-                        <div style="padding:40px 20px; text-align:center; color:var(--color-ink-muted); font-size:0.88rem;">
-                            <span style="font-size:1.8rem; display:block; margin-bottom:8px;">🛡️</span>
-                            Ready to orchestrate. Click <strong>"Run Safe Scholarship Agent"</strong> to execute with ArmorIQ cryptographic assurance.
+                    <!-- Demand Alert Banner (Hidden by default) -->
+                    <div class="alert-banner-demand hidden" id="dash-demand-alert">
+                        <div class="alert-demand-head">
+                            <span>📄</span>
+                            <span>Required Document Missing</span>
+                        </div>
+                        <div class="alert-body">
+                            The scholarship requires: <strong class="demand-pill" id="dash-demanded-doc">income_certificate.pdf</strong>.<br>
+                            Please upload your certificate in the <strong>Profile &amp; Vault</strong> tab to proceed.
+                        </div>
+                    </div>
+
+                    <div class="card-header-bar">
+                        <div class="card-title-group">
+                            <span class="icon-box icon-cyan">⚡</span>
+                            <div>
+                                <h3 class="card-title">Live Progress &amp; Actions</h3>
+                                <span class="card-subtitle">Real-time steps taken by the AI agent</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5 Steps Timeline -->
+                    <div class="progress-timeline">
+                        <div class="timeline-step" id="pstep-1">
+                            <div class="step-num">1</div>
+                            <span class="step-name">Search</span>
+                        </div>
+                        <div class="step-line"></div>
+                        <div class="timeline-step" id="pstep-2">
+                            <div class="step-num">2</div>
+                            <span class="step-name">Eligibility</span>
+                        </div>
+                        <div class="step-line"></div>
+                        <div class="timeline-step" id="pstep-3">
+                            <div class="step-num">3</div>
+                            <span class="step-name">Safety Check</span>
+                        </div>
+                        <div class="step-line"></div>
+                        <div class="timeline-step" id="pstep-4">
+                            <div class="step-num">4</div>
+                            <span class="step-name">Apply</span>
+                        </div>
+                        <div class="step-line"></div>
+                        <div class="timeline-step" id="pstep-5">
+                            <div class="step-num">5</div>
+                            <span class="step-name">Complete</span>
+                        </div>
+                    </div>
+
+                    <!-- Stream Container -->
+                    <div class="stream-container" id="dash-stream-container">
+                        <div style="padding:40px 20px; text-align:center; color:var(--text-muted); font-size:0.9rem;">
+                            <span style="font-size: 2rem; display:block; margin-bottom:8px;">🛡️</span>
+                            <span>Ready to search. Click <strong>"Run Safe Scholarship Agent"</strong> to watch the AI find and evaluate scholarships in real time.</span>
                         </div>
                     </div>
                 </div>
-
             </div>
         </section>
 
         <!-- ============================================================ -->
         <!-- TAB 2: SCHOLARSHIPS DIRECTORY                                -->
         <!-- ============================================================ -->
-        <section class="view-content" id="view-scholarships">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <section class="tab-view" id="view-scholarships">
+            <div class="section-top">
                 <div>
-                    <h2 style="font-size:1.4rem; font-weight:700;">Verified Scholarships</h2>
-                    <p style="font-size:0.85rem; color:var(--color-ink-2);">Discovered state and central opportunities compatible with intent</p>
+                    <h2 class="section-title">🎓 Available Scholarships</h2>
+                    <p class="section-sub">Verified government and merit scholarships</p>
                 </div>
-                <div style="display:flex; gap:10px;">
-                    <select id="filter-type" class="form-input-clean" style="width:auto;" onchange="filterScholarships()">
-                        <option value="all">All Categories</option>
+                <div class="filter-row">
+                    <label>Category:</label>
+                    <select id="filter-type" class="select-input" onchange="filterScholarships()">
+                        <option value="all">All Types</option>
                         <option value="government" selected>Government Only</option>
                         <option value="private">Private</option>
                     </select>
-                    <select id="filter-state" class="form-input-clean" style="width:auto;" onchange="filterScholarships()">
+                    <label>State:</label>
+                    <select id="filter-state" class="select-input" onchange="filterScholarships()">
                         <option value="All India">All States</option>
                         <option value="Punjab" selected>Punjab</option>
                         <option value="Delhi">Delhi</option>
@@ -535,447 +611,265 @@ body.armoriq-theme {
                 </div>
             </div>
 
-            <div class="cards-grid-clean" id="scholarships-grid"></div>
+            <div class="cards-grid" id="scholarships-grid"></div>
         </section>
 
         <!-- ============================================================ -->
-        <!-- TAB 3: PROFILE & DOCUMENT VAULT                              -->
+        <!-- TAB 3: INTENT & POLICY GRAPH                                 -->
         <!-- ============================================================ -->
-        <section class="view-content" id="view-vault">
-            <div style="margin-bottom:20px;">
-                <h2 style="font-size:1.4rem; font-weight:700;">Student Profile &amp; Document Vault</h2>
-                <p style="font-size:0.85rem; color:var(--color-ink-2);">Manage academic criteria and upload verified certificates</p>
+        <section class="tab-view" id="view-policy">
+            <div class="section-top">
+                <div>
+                    <h2 class="section-title">🛡️ Intent &amp; Policy Graph</h2>
+                    <p class="section-sub">Cryptographic Intent Assurance &amp; Zero-Trust Policy Matrix</p>
+                </div>
             </div>
 
-            <div class="dashboard-columns">
-                <!-- Profile Editor -->
-                <div class="armoriq-card">
-                    <h3 class="card-title-h3">Student Information</h3>
-                    <form onsubmit="event.preventDefault(); saveStudentProfile();" style="display:flex; flex-direction:column; gap:12px;">
-                        <div>
-                            <label style="font-size:0.75rem; color:var(--color-ink-muted);">Full Name</label>
-                            <input type="text" id="prof-name" class="form-input-clean" value="Gurpreet Singh" required>
+            <div class="dashboard-grid">
+                <div class="glass-card">
+                    <h3 class="card-title mb-3">Active Policy Constraints</h3>
+                    <div style="display:flex; flex-direction:column; gap:12px; margin-top:14px;">
+                        <div class="pill-item">
+                            <span class="box-heading">// ALLOWED ACTIONS</span>
+                            <div class="font-mono text-emerald" style="font-size:0.82rem; line-height:1.6;">
+                                ✓ scholarship.search_scholarships<br>
+                                ✓ scholarship.check_eligibility<br>
+                                ✓ scholarship.prepare_application<br>
+                                ✓ scholarship.submit_application (Govt schemes)
+                            </div>
                         </div>
-                        <div>
-                            <label style="font-size:0.75rem; color:var(--color-ink-muted);">Course / Degree</label>
-                            <input type="text" id="prof-edu" class="form-input-clean" value="B.Tech Computer Science" required>
+                        <div class="pill-item">
+                            <span class="box-heading">// DENIED ACTIONS</span>
+                            <div class="font-mono text-rose" style="font-size:0.82rem; line-height:1.6;">
+                                ✕ private_grants.auto_submit<br>
+                                ✕ banking.read_records<br>
+                                ✕ profile.modify_records
+                            </div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <h3 class="card-title mb-3">Cryptographic Intent Binding</h3>
+                    <pre style="background:rgba(0,0,0,0.5); padding:16px; border-radius:8px; font-size:0.82rem; color:#CBD5E1; line-height:1.6;" class="font-mono">{
+  "intent_token": "ak_csrg_b3967e9aaad",
+  "issuer": "https://api.armoriq.ai",
+  "subject": "student-demo-001",
+  "algorithm": "ES256 (NIST P-256)",
+  "merkle_root": "c1795523a262c9b27dc542f32c6b8a16",
+  "ttl_seconds": 300,
+  "enforcement": "zero_trust"
+}</pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- TAB 4: AGENT STREAM & REASONING                              -->
+        <!-- ============================================================ -->
+        <section class="tab-view" id="view-activity">
+            <div class="section-top">
+                <div>
+                    <h2 class="section-title">⚡ AI Thought &amp; Tool Stream</h2>
+                    <p class="section-sub">Real-time reasoning traces and FastMCP tool call telemetry</p>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div class="card-header-bar">
+                    <div class="card-title-group">
+                        <span class="icon-box icon-indigo">🧠</span>
                         <div>
-                            <label style="font-size:0.75rem; color:var(--color-ink-muted);">Home State</label>
-                            <select id="prof-state" class="form-input-clean">
-                                <option value="Punjab" selected>Punjab</option>
-                                <option value="Delhi">Delhi</option>
-                                <option value="All India">All India</option>
-                            </select>
+                            <h3 class="card-title">LLM Execution Traces</h3>
+                            <span class="card-subtitle">Transparent view of agent decision flow</span>
                         </div>
-                        <div>
-                            <label style="font-size:0.75rem; color:var(--color-ink-muted);">Annual Family Income (₹)</label>
-                            <input type="number" id="prof-income" class="form-input-clean" value="450000" required>
+                    </div>
+                </div>
+                <div id="llm-thought-stream" style="background:rgba(0,0,0,0.5); padding:16px; border-radius:8px; font-size:0.85rem; color:#CBD5E1; line-height:1.6;" class="font-mono">
+[Gemini 3.6 Flash] Loaded student profile: Gurpreet Singh, B.Tech CS, Punjab.
+[Plan Capture] Canonical plan captured with SHA-256 Merkle root (c1795523a262c9b27dc...).
+[ArmorIQ Policy] OPA zero-trust policy applied to FastMCP server 'scholarship'.
+[Completed Steps] 4 consequential tools authorized with NIST P-256 signatures.
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- TAB 5: AUDIT LOG                                             -->
+        <!-- ============================================================ -->
+        <section class="tab-view" id="view-audit">
+            <div class="section-top">
+                <div>
+                    <h2 class="section-title">📋 Immutable Audit Log</h2>
+                    <p class="section-sub">Detailed forensic record of all searches and safety evaluations</p>
+                </div>
+                <button class="btn-secondary" onclick="exportAuditLogJSON()">
+                    📥 Export Activity Log
+                </button>
+            </div>
+
+            <div class="glass-card">
+                <div class="stream-container" id="audit-terminal-body" style="max-height: 450px;"></div>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- TAB 6: MCP SERVER REGISTRY                                   -->
+        <!-- ============================================================ -->
+        <section class="tab-view" id="view-mcp">
+            <div class="section-top">
+                <div>
+                    <h2 class="section-title">🔌 FastMCP Server Capabilities</h2>
+                    <p class="section-sub">Model Context Protocol JSON-RPC 2.0 transport and tool specifications</p>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="glass-card">
+                    <h3 class="card-title mb-2">Connected Server</h3>
+                    <div style="display:flex; flex-direction:column; gap:8px; font-size:0.85rem;" class="font-mono">
+                        <div>Server ID: <strong class="text-indigo">scholarship</strong></div>
+                        <div>Endpoint: <strong>http://127.0.0.1:8000/mcp</strong></div>
+                        <div>Transport: <strong>JSON-RPC 2.0 Streamable HTTP</strong></div>
+                        <div>Status: <span class="text-emerald">● CONNECTED</span></div>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <h3 class="card-title mb-2">Registered Capabilities</h3>
+                    <div style="display:flex; flex-direction:column; gap:8px; font-size:0.82rem;" class="font-mono">
+                        <div>• <strong>scholarship.search_scholarships</strong> [READ]</div>
+                        <div>• <strong>scholarship.check_eligibility</strong> [READ]</div>
+                        <div>• <strong>scholarship.prepare_application</strong> [SAFE WRITE]</div>
+                        <div>• <strong>scholarship.submit_application</strong> <span class="badge-block">PROTECTED WRITE</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- TAB 7: STUDENT PROFILE & DOCUMENT VAULT                      -->
+        <!-- ============================================================ -->
+        <section class="tab-view" id="view-profile">
+            <div class="section-top">
+                <div>
+                    <h2 class="section-title">👤 Student Profile &amp; Vault</h2>
+                    <p class="section-sub">Manage academic criteria and upload verified certificates</p>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Profile Details -->
+                <div class="glass-card">
+                    <h3 class="card-title mb-3">Student Information</h3>
+                    <form onsubmit="event.preventDefault(); saveStudentProfile();">
+                        <div class="form-row-2 mb-3">
+                            <div class="form-field">
+                                <label>Full Name</label>
+                                <input type="text" id="prof-name" class="text-input" value="Gurpreet Singh" required>
+                            </div>
+                            <div class="form-field">
+                                <label>Course / Degree</label>
+                                <input type="text" id="prof-edu" class="text-input" value="B.Tech Computer Science" required>
+                            </div>
+                            <div class="form-field">
+                                <label>Home State</label>
+                                <select id="prof-state" class="select-input">
+                                    <option value="Punjab" selected>Punjab</option>
+                                    <option value="Delhi">Delhi</option>
+                                    <option value="All India">All India</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label>Annual Family Income (₹)</label>
+                                <input type="number" id="prof-income" class="text-input" value="450000" required>
+                            </div>
                         </div>
-                        <button type="submit" class="btn-armoriq-primary mt-2">
+                        <button type="submit" class="btn-primary">
                             Save Profile
                         </button>
                     </form>
                 </div>
 
                 <!-- Certificate Uploader -->
-                <div class="armoriq-card">
-                    <h3 class="card-title-h3">Upload Certificate</h3>
-                    <form onsubmit="event.preventDefault(); handleDocumentUpload();" style="display:flex; flex-direction:column; gap:12px;">
-                        <div>
-                            <label style="font-size:0.75rem; color:var(--color-ink-muted);">Document Type</label>
-                            <select id="upload-doc-type" class="form-input-clean">
-                                <option value="income_certificate">Income Certificate (PDF)</option>
-                                <option value="domicile_certificate">Domicile Certificate (PDF)</option>
-                                <option value="marksheet">Marksheet (PDF)</option>
-                            </select>
+                <div class="glass-card">
+                    <h3 class="card-title mb-3">Upload Certificate to Vault</h3>
+                    <form onsubmit="event.preventDefault(); handleDocumentUpload();">
+                        <div class="form-row-2 mb-3">
+                            <div class="form-field">
+                                <label>Certificate Type</label>
+                                <select id="upload-doc-type" class="select-input">
+                                    <option value="income_certificate">Income Certificate (PDF)</option>
+                                    <option value="domicile_certificate">Domicile Proof (PDF)</option>
+                                    <option value="marksheet">Marksheet (PDF)</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label>Select File (PDF / Image)</label>
+                                <input type="file" id="upload-doc-file" class="text-input" accept=".pdf,.png,.jpg,.jpeg" required>
+                            </div>
                         </div>
-                        <div>
-                            <label style="font-size:0.75rem; color:var(--color-ink-muted);">Select File (PDF / Image)</label>
-                            <input type="file" id="upload-doc-file" class="form-input-clean" accept=".pdf,.png,.jpg,.jpeg" required>
-                        </div>
-                        <button type="submit" class="btn-armoriq-secondary btn-full mt-2">
-                            📤 Upload &amp; Verify Document
+                        <button type="submit" class="btn-secondary btn-block">
+                            📤 Upload Certificate
                         </button>
                     </form>
                 </div>
             </div>
         </section>
 
-        <!-- ============================================================ -->
-        <!-- TAB 4: AUDIT TRAIL                                           -->
-        <!-- ============================================================ -->
-        <section class="view-content" id="view-audit">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <div>
-                    <h2 style="font-size:1.4rem; font-weight:700;">Forensic Audit Log</h2>
-                    <p style="font-size:0.85rem; color:var(--color-ink-2);">Tamper-evident record of all ArmorIQ policy evaluations and tool executions</p>
-                </div>
-                <button class="btn-armoriq-secondary" onclick="exportAuditLogJSON()">
-                    📥 Export Audit JSON
-                </button>
-            </div>
-
-            <div class="armoriq-card">
-                <div class="stream-list-container" id="audit-terminal-body" style="max-height:480px;"></div>
-            </div>
-        </section>
-
     </main>
 
-    <!-- TOAST CONTAINER -->
-    <div class="toast-container-clean" id="toast-container"></div>
-
-    <script>
-/**
- * INLINED CONTROLLER (Zero external caching dependencies)
- */
-const state = {
-    currentTab: 'dashboard',
-    student: {
-        id: 'student-demo-001',
-        name: 'Gurpreet Singh',
-        field: 'B.Tech Computer Science',
-        state: 'Punjab',
-        income: 450000
-    },
-    scholarships: [
-        {
-            id: 'SCH-PUN-ENG-01',
-            name: 'Punjab State Post-Matric Technical Scholarship',
-            provider: 'Punjab Dept of Higher Education',
-            category: 'government',
-            state: 'Punjab',
-            amount: '₹85,000 / year',
-            criteria: '7.5+ CGPA | Family Income < ₹5,00,000',
-            match_score: '95%',
-            intent_compatible: true
-        },
-        {
-            id: 'SCH-FED-MERIT-02',
-            name: 'National Merit-Cum-Means Engineering Grant',
-            provider: 'Ministry of Electronics & IT',
-            category: 'government',
-            state: 'All India',
-            amount: '₹1,20,000 / year',
-            criteria: '8.0+ CGPA | Family Income < ₹6,00,000',
-            match_score: '88%',
-            intent_compatible: true
-        },
-        {
-            id: 'SCH-PRV-GLOBAL-03',
-            name: 'Apex Global Foundation Private Leadership Award',
-            provider: 'Apex International Endowment (Private)',
-            category: 'private',
-            state: 'All India',
-            amount: '₹2,50,000 / year',
-            criteria: 'Essay & Recommendation Required',
-            match_score: '0%',
-            intent_compatible: false
-        }
-    ],
-    auditLogs: []
-};
-
-function initApp() {
-    renderScholarships();
-    addAuditLog('SYSTEM_BOOT', 'ALLOW', 'system.init', 'ScholarShield initialized with ArmorIQ runtime bindings.');
-}
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-} else {
-    initApp();
-}
-
-function switchView(tabId) {
-    state.currentTab = tabId;
-
-    document.querySelectorAll('.nav-tab-btn').forEach(btn => {
-        if (btn.getAttribute('data-tab') === tabId) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-
-    document.querySelectorAll('.view-content').forEach(view => {
-        if (view.id === `view-${tabId}`) {
-            view.classList.add('active');
-        } else {
-            view.classList.remove('active');
-        }
-    });
-
-    if (tabId === 'scholarships') {
-        renderScholarships();
-    }
-}
-
-async function executeWorkflowFromDashboard() {
-    const runBtn = document.getElementById('dash-run-btn');
-    const streamContainer = document.getElementById('dash-stream-container');
-    const simDrift = document.getElementById('dash-sim-drift')?.checked || false;
-    const simMissingDoc = document.getElementById('dash-sim-missing-doc')?.checked || false;
-
-    const secAlert = document.getElementById('dash-security-alert');
-    if (secAlert) secAlert.classList.add('hidden');
-    const demAlert = document.getElementById('dash-demand-alert');
-    if (demAlert) demAlert.classList.add('hidden');
-
-    resetPipelineSteps();
-
-    if (runBtn) {
-        runBtn.disabled = true;
-        runBtn.textContent = 'Orchestrating Plan & Enforcing Intent...';
-    }
-
-    setPipelineStep(1, 'active');
-    if (streamContainer) streamContainer.innerHTML = '';
-
-    appendStreamCard('// 01. PLAN DISCOVERY', 'Found verified engineering scholarship schemes in Punjab matching student profile.', 'ALLOW', 'scholarship.search_scholarships');
-    addAuditLog('PLAN_DISCOVERY', 'ALLOW', 'scholarship.search_scholarships', 'Discovered matching state schemes.');
-
-    try {
-        setPipelineStep(1, 'done');
-        setPipelineStep(2, 'active');
-
-        appendStreamCard('// 02. ELIGIBILITY VERIFICATION', `Validated student criteria (Income: ₹${state.student.income.toLocaleString('en-IN')}, State: ${state.student.state}).`, 'ALLOW', 'scholarship.check_eligibility');
-        addAuditLog('ELIGIBILITY_CHECK', 'ALLOW', 'scholarship.check_eligibility', 'Verified academic & income criteria.');
-
-        setPipelineStep(2, 'done');
-        setPipelineStep(3, 'active');
-
-        appendStreamCard('// 03. INTENT VERIFICATION', 'Signed plan INT-8F92A1 verified by ArmorIQ Zero-Trust Sentry.', 'ALLOW', 'armoriq.verify');
-        addAuditLog('INTENT_VERIFY', 'ALLOW', 'armoriq.verify', 'NIST P-256 signed IntentToken checked.');
-
-        const payload = {
-            student_name: state.student.name,
-            target_state: state.student.state,
-            target_field: state.student.field,
-            annual_income: state.student.income,
-            simulate_out_of_scope_violation: simDrift,
-            simulate_missing_document: simMissingDoc
-        };
-
-        const response = await fetch('/api/agent/run', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-
-        setPipelineStep(3, 'done');
-        setPipelineStep(4, 'active');
-
-        if (simDrift || data.blocked_steps > 0) {
-            setPipelineStep(4, 'blocked');
-            if (secAlert) secAlert.classList.remove('hidden');
-            appendStreamCard('// 04. CONTEXT DRIFT INTERCEPTED', '🚫 Action BLOCKED: Agent attempted unauthorized submission to private award SCH-PRV-GLOBAL-03.', 'BLOCK', 'scholarship.submit_application');
-            addAuditLog('POLICY_BLOCK', 'BLOCK', 'scholarship.submit_application', 'Intercepted out-of-scope submission. Zero writes executed.');
-            showToast('🚫 Consequential Write Blocked by ArmorIQ');
-        } else if (simMissingDoc) {
-            setPipelineStep(4, 'active');
-            if (demAlert) demAlert.classList.remove('hidden');
-            appendStreamCard('// 04. DOCUMENT DEMAND REQUIRED', '⚠️ Action Paused: Mandatory Income Certificate PDF required before submission.', 'BLOCK', 'documents.verify');
-            addAuditLog('DOC_DEMAND', 'BLOCK', 'documents.verify', 'Paused for missing certificate.');
-            showToast('📄 Missing Certificate Demanded by Portal');
-        } else {
-            setPipelineStep(4, 'done');
-            appendStreamCard('// 04. GOVERNED SUBMISSION', '✓ Application submitted safely to Punjab State Portal with cryptographic authorization token.', 'ALLOW', 'scholarship.submit_application');
-            addAuditLog('TOOL_EXECUTE', 'ALLOW', 'scholarship.submit_application', 'Submitted application with valid CSRG token.');
-            showToast('✓ Workflow Completed with Cryptographic Assurance');
-        }
-
-    } catch (err) {
-        setPipelineStep(4, 'blocked');
-        appendStreamCard('// EXECUTION ERROR', err.message || 'Workflow notice', 'BLOCK', 'system.error');
-        addAuditLog('SYSTEM_ERROR', 'BLOCK', 'system.error', err.message);
-        showToast(`Workflow notice: ${err.message}`);
-    } finally {
-        if (runBtn) {
-            runBtn.disabled = false;
-            runBtn.textContent = '⚡ Run Safe Scholarship Agent';
-        }
-    }
-}
-
-function appendStreamCard(title, desc, verdict, toolName) {
-    const container = document.getElementById('dash-stream-container');
-    if (!container) return;
-    const isAllow = (verdict === 'ALLOW');
-    const card = document.createElement('div');
-    card.className = `stream-action-item ${isAllow ? 'item-allow' : 'item-block'}`;
-    card.innerHTML = `
-        <div class="stream-top-row">
-            <span class="stream-title-text">${title}</span>
-            <span class="${isAllow ? 'badge-verdict-allow' : 'badge-verdict-block'}">${isAllow ? 'ALLOW' : 'BLOCKED'}</span>
-        </div>
-        <div class="stream-desc-text">${desc}</div>
-        <div class="stream-foot-row">
-            <span>⏱️ ${new Date().toLocaleTimeString()}</span>
-            <span class="${isAllow ? 'text-allow' : 'text-threat'}">${isAllow ? '✓ ArmorIQ: Verified' : '🚫 ArmorIQ: Intercepted'}</span>
-        </div>
-    `;
-    container.appendChild(card);
-}
-
-function resetPipelineSteps() {
-    for (let i = 1; i <= 4; i++) {
-        const el = document.getElementById(`pstep-${i}`);
-        if (el) el.className = 'pipe-step-item';
-    }
-}
-
-function setPipelineStep(num, status) {
-    const el = document.getElementById(`pstep-${num}`);
-    if (el) el.className = `pipe-step-item ${status}`;
-}
-
-function renderScholarships() {
-    const grid = document.getElementById('scholarships-grid');
-    if (!grid) return;
-
-    const filterType = document.getElementById('filter-type')?.value || 'all';
-    const filterState = document.getElementById('filter-state')?.value || 'All India';
-
-    const filtered = state.scholarships.filter(s => {
-        if (filterType !== 'all' && s.category !== filterType) return false;
-        if (filterState !== 'All India' && s.state !== 'All India' && s.state !== filterState) return false;
-        return true;
-    });
-
-    grid.innerHTML = filtered.map(sch => `
-        <div class="sch-item-card">
-            <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <span class="font-mono text-muted" style="font-size:0.7rem; text-transform:uppercase;">${sch.category}</span>
-                    <span class="${sch.intent_compatible ? 'badge-verdict-allow' : 'badge-verdict-block'}">
-                        ${sch.intent_compatible ? '● In-Scope' : '✕ Out-of-Scope'}
-                    </span>
+    <!-- Modal: Search Configuration -->
+    <div class="modal-backdrop hidden" id="order-modal">
+        <div class="modal-body">
+            <div class="modal-header-row">
+                <div class="card-title-group">
+                    <span class="icon-box icon-indigo">🚀</span>
+                    <div>
+                        <h3 class="card-title">Start AI Scholarship Search</h3>
+                        <span class="card-subtitle">Set your search preferences</span>
+                    </div>
                 </div>
-                <h3 class="sch-head-name">${sch.name}</h3>
-                <div class="sch-amount-text mt-2">${sch.amount}</div>
-                <div style="font-size:0.78rem; color:var(--color-ink-2); margin-top:8px; display:flex; flex-direction:column; gap:4px;">
-                    <div><strong>Provider:</strong> ${sch.provider}</div>
-                    <div><strong>Criteria:</strong> ${sch.criteria}</div>
-                    <div><strong>Match:</strong> <span class="${sch.intent_compatible ? 'text-allow' : 'text-threat'}">${sch.match_score}</span></div>
+                <button class="modal-close" onclick="closeOrderModal()">✕</button>
+            </div>
+            <form onsubmit="event.preventDefault(); submitOrderModal();">
+                <div class="form-row-2 mb-3">
+                    <div class="form-field">
+                        <label>Student Name</label>
+                        <input type="text" id="modal-name" class="text-input" value="Gurpreet Singh" required>
+                    </div>
+                    <div class="form-field">
+                        <label>Course / Degree</label>
+                        <input type="text" id="modal-edu" class="text-input" value="B.Tech Computer Science" required>
+                    </div>
+                    <div class="form-field">
+                        <label>Home State</label>
+                        <select id="modal-state" class="select-input">
+                            <option value="Punjab" selected>Punjab</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="All India">All India</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Annual Income (₹)</label>
+                        <input type="number" id="modal-income" class="text-input" value="450000" required>
+                    </div>
                 </div>
-            </div>
-            <button class="btn-armoriq-secondary btn-full" onclick="showToast('Selected ${sch.name}. Compatible with intent.')">
-                Apply with ArmorIQ Protection
-            </button>
+                <div class="form-field mb-4">
+                    <label>What would you like the agent to find?</label>
+                    <textarea id="modal-prompt" rows="3" class="text-input" style="width:100%;">Find government engineering scholarships in Punjab I am eligible for and apply.</textarea>
+                </div>
+                <div class="modal-footer-row">
+                    <button type="button" class="btn-secondary" onclick="closeOrderModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Find &amp; Apply Safely</button>
+                </div>
+            </form>
         </div>
-    `).join('');
-}
+    </div>
 
-function filterScholarships() {
-    renderScholarships();
-}
+    <!-- Toast Notifications -->
+    <div class="toast-box" id="toast-container"></div>
 
-function saveStudentProfile() {
-    const nameEl = document.getElementById('prof-name');
-    const eduEl = document.getElementById('prof-edu');
-    const stateEl = document.getElementById('prof-state');
-    const incEl = document.getElementById('prof-income');
-
-    if (nameEl) state.student.name = nameEl.value;
-    if (eduEl) state.student.field = eduEl.value;
-    if (stateEl) state.student.state = stateEl.value;
-    if (incEl) state.student.income = parseInt(incEl.value, 10);
-
-    const tgtState = document.getElementById('dash-target-state');
-    if (tgtState) tgtState.textContent = state.student.state;
-
-    showToast('✓ Student Profile Saved.');
-    addAuditLog('PROFILE_SAVED', 'ALLOW', 'profile.update', `Profile updated for ${state.student.name}.`);
-}
-
-async function handleDocumentUpload() {
-    const fileInput = document.getElementById('upload-doc-file');
-    const docTypeEl = document.getElementById('upload-doc-type');
-    const docType = docTypeEl ? docTypeEl.value : 'income_certificate';
-
-    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        showToast('Please choose a file to upload.');
-        return;
-    }
-
-    const file = fileInput.files[0];
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('document_type', docType);
-    formData.append('student_id', state.student.id);
-
-    try {
-        await fetch('/api/documents/upload', {
-            method: 'POST',
-            body: formData
-        });
-    } catch (_) {}
-
-    showToast(`✓ Certificate '${file.name}' verified and uploaded.`);
-    const demAlert = document.getElementById('dash-demand-alert');
-    if (demAlert) demAlert.classList.add('hidden');
-    addAuditLog('DOC_UPLOAD', 'ALLOW', 'documents.upload', `Uploaded and verified ${file.name}.`);
-}
-
-function addAuditLog(tag, verdict, action, details) {
-    const now = new Date();
-    const timeStr = now.toTimeString().split(' ')[0];
-    state.auditLogs.push({ time: timeStr, tag, verdict, action, details });
-
-    const container = document.getElementById('audit-terminal-body');
-    if (container) {
-        const item = document.createElement('div');
-        item.className = 'stream-action-item';
-        item.innerHTML = `
-            <div class="stream-top-row">
-                <span class="font-mono text-accent" style="font-size:0.75rem;">// ${tag}</span>
-                <span class="${verdict === 'ALLOW' ? 'badge-verdict-allow' : 'badge-verdict-block'}">${verdict}</span>
-            </div>
-            <div class="stream-desc-text font-mono" style="font-size:0.75rem;"><strong>Action:</strong> ${action} — ${details}</div>
-            <div class="stream-foot-row">
-                <span>⏱️ ${timeStr}</span>
-                <span>🔒 NIST P-256 Verified</span>
-            </div>
-        `;
-        container.prepend(item);
-    }
-}
-
-function exportAuditLogJSON() {
-    const blob = new Blob([JSON.stringify(state.auditLogs, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `armoriq-scholarshield-audit-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('Exported audit report as JSON.');
-}
-
-function showToast(message) {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-    const toast = document.createElement('div');
-    toast.className = 'toast-item';
-    toast.innerHTML = `<span>${message}</span>`;
-    container.appendChild(toast);
-    setTimeout(() => {
-        toast.remove();
-    }, 4000);
-}
-
-window.switchView = switchView;
-window.executeWorkflowFromDashboard = executeWorkflowFromDashboard;
-window.saveStudentProfile = saveStudentProfile;
-window.handleDocumentUpload = handleDocumentUpload;
-window.exportAuditLogJSON = exportAuditLogJSON;
-window.filterScholarships = filterScholarships;
-window.showToast = showToast;
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
