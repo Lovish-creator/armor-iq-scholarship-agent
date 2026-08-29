@@ -730,13 +730,13 @@ body.dark-theme {
                         </div>
                         <div class="sec-banner-body">
                             <div class="sec-detail-row">
-                                <strong>Attempted Tool:</strong> <code>scholarship.submit_application</code>
+                                <strong>Attempted Tool:</strong> <code id="sec-alert-action">scholarship.submit_application</code>
                             </div>
                             <div class="sec-detail-row">
-                                <strong>Target Scheme:</strong> <code>SCH-PRV-GLOBAL-03 (Private Award)</code>
+                                <strong>Target Scheme:</strong> <code id="sec-alert-target">SCH-PRV-GLOBAL-03 (Apex Private Award)</code>
                             </div>
                             <div class="sec-detail-row">
-                                <strong>Violation:</strong> Target scholarship is out-of-scope private foundation award.
+                                <strong>Violation:</strong> <span id="sec-alert-reason">Target scholarship violates signed intent policy. Out-of-scope private foundation scheme.</span>
                             </div>
                             <div class="proof-lock-box">
                                 🔒 <strong>Proof of Non-Execution:</strong> Consequential action aborted. Database application count remains <strong>0</strong>.
@@ -812,6 +812,34 @@ body.dark-theme {
                             <div class="stream-item-placeholder">
                                 <div class="placeholder-icon-pulse">🛡️</div>
                                 <span>Ready to execute. Click <strong>"Execute Governed Agent Workflow"</strong> to begin live discovery, plan capture, and governed tool calls.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cryptographic Telemetry Box -->
+                    <div class="glass-card telemetry-card mt-4">
+                        <div class="card-title-bar">
+                            <div class="title-with-icon">
+                                <span class="card-icon-box icon-indigo">🔐</span>
+                                <div>
+                                    <h3 class="card-h3">ArmorIQ Cryptographic Telemetry</h3>
+                                    <span class="card-sub">NIST P-256 CSRG IntentToken &amp; Merkle Root Hash</span>
+                                </div>
+                            </div>
+                            <span class="badge-chip chip-emerald" id="telemetry-badge">Verified Intent Token</span>
+                        </div>
+                        <div class="mcp-info-list font-mono" style="font-size:0.76rem;">
+                            <div class="mcp-row">
+                                <span class="text-muted">Intent Token:</span>
+                                <span class="text-cyan font-mono" id="tel-token-id">ak_csrg_9f84b12c8a7e4d20</span>
+                            </div>
+                            <div class="mcp-row">
+                                <span class="text-muted">Merkle Plan Root:</span>
+                                <span class="text-indigo font-mono" id="tel-plan-hash" style="word-break:break-all;">c1795523a262c9b27dc542f32c6b8a16f31f8a274150ffa0faf88ed9bd09b8db</span>
+                            </div>
+                            <div class="mcp-row">
+                                <span class="text-muted">NIST P-256 Signature:</span>
+                                <span class="text-emerald font-mono" id="tel-ecdsa-sig" style="word-break:break-all;">30450220025890efec529ee68bbef05a2de54e64a6dad3a361cfc629b8326410782aee2f...</span>
                             </div>
                         </div>
                     </div>
@@ -950,28 +978,63 @@ intent:
             <div class="section-header-row">
                 <div>
                     <h2 class="section-h2">⚡ Real-Time Agent Stream &amp; LLM Reasoning</h2>
-                    <p class="section-desc">Inspect live Gemini 3.6 Flash thought tokens and exact MCP payload dispatches</p>
+                    <p class="section-desc">Inspect live Gemini 3.6 Flash thought tokens, plan synthesis, and FastMCP payload dispatches</p>
                 </div>
+                <span class="badge-chip chip-live">Live Stream Active</span>
             </div>
 
-            <!-- Gemini Thought Stream -->
-            <div class="glass-card mb-4">
-                <div class="card-title-bar">
-                    <div class="title-with-icon">
-                        <span class="card-icon-box icon-indigo">🧠</span>
-                        <div>
-                            <h3 class="card-h3">Gemini 3.6 Flash LLM Reasoning Stream</h3>
-                            <span class="card-sub">Internal reasoning trace captured prior to ArmorIQ plan signing</span>
+            <!-- 2-Column Stream Layout -->
+            <div class="policy-grid">
+                <!-- Gemini Thought Stream -->
+                <div class="glass-card">
+                    <div class="card-title-bar">
+                        <div class="title-with-icon">
+                            <span class="card-icon-box icon-indigo">🧠</span>
+                            <div>
+                                <h3 class="card-h3">Gemini 3.6 Flash LLM Reasoning Stream</h3>
+                                <span class="card-sub">Internal reasoning trace captured prior to ArmorIQ plan signing</span>
+                            </div>
                         </div>
+                        <span class="badge-chip chip-indigo">Chain-of-Thought</span>
                     </div>
-                    <span class="badge-chip chip-indigo">Live Chain-of-Thought</span>
-                </div>
-                <div class="thought-stream-box font-mono" id="llm-thought-stream" style="background:rgba(0,0,0,0.4); padding:16px; border-radius:8px; line-height:1.6; font-size:0.82rem; color:#CBD5E1; white-space:pre-wrap;">
+                    <div class="thought-stream-box font-mono" id="llm-thought-stream" style="background:rgba(0,0,0,0.45); border:1px solid var(--border-subtle); padding:16px; border-radius:var(--radius-md); line-height:1.7; font-size:0.8rem; color:#CBD5E1; white-space:pre-wrap; min-height:260px;">
 [Planner] Analyzing student profile: Gurpreet Singh, B.Tech Computer Science, Punjab, Income: ₹4,50,000.
 [Discovery] Initiating live query for verified government engineering scholarships in Punjab...
 [Discovered] Found 2 eligible schemes: 'Punjab State Post-Matric Technical Scholarship' and 'National Merit-Cum-Means Engineering Grant'.
 [Plan Synthesis] Generating deterministic 4-step execution plan adhering to ArmorIQ policy 'scholarship.*'.
-[Plan Capture] Dispatching plan to ArmorIQ IAP endpoint (https://api.armoriq.ai/capture-plan)...
+[Plan Capture] Dispatching canonical plan to ArmorIQ IAP endpoint (https://api.armoriq.ai/capture-plan)...
+[Intent Token] Minted NIST P-256 CSRG IntentToken with SHA-256 Merkle root.
+[Governance] Zero-trust verification initialized for downstream FastMCP tool execution.
+                    </div>
+                </div>
+
+                <!-- MCP Tool Payload & Telemetry Inspector -->
+                <div class="glass-card">
+                    <div class="card-title-bar">
+                        <div class="title-with-icon">
+                            <span class="card-icon-box icon-cyan">⚡</span>
+                            <div>
+                                <h3 class="card-h3">Live FastMCP JSON-RPC Payload Inspector</h3>
+                                <span class="card-sub">Exact arguments dispatched to protected MCP tool endpoints</span>
+                            </div>
+                        </div>
+                        <span class="badge-chip chip-emerald">JSON-RPC 2.0</span>
+                    </div>
+                    <pre class="yaml-viewer font-mono" id="mcp-payload-viewer" style="min-height:260px;"><code>{
+  "jsonrpc": "2.0",
+  "method": "scholarship.submit_application",
+  "params": {
+    "student_id": "student-demo-001",
+    "student_name": "Gurpreet Singh",
+    "scholarship_id": "SCH-PUN-ENG-01",
+    "scheme_name": "Punjab State Post-Matric Technical Scholarship",
+    "amount": 85000,
+    "intent_token": "ak_csrg_9f84b12c8a7e4d20",
+    "armoriq_decision": "ALLOW",
+    "proof_hash": "c1795523a262c9b27dc542f32c6b8a16f31f8a274150ffa0faf88ed9bd09b8db"
+  },
+  "id": "req-004-submit"
+}</code></pre>
                 </div>
             </div>
         </section>
@@ -1216,685 +1279,6 @@ intent:
     <div class="toast-container" id="toast-container"></div>
 
     <script src="app.js"></script>
-    <script>
-/**
- * INLINE SCHOLARSHIELD APPLICATION CONTROLLER
- */
-const state = {
-    activeTab: 'dashboard',
-    student: {
-        id: 'student-demo-001',
-        name: 'Gurpreet Singh',
-        field: 'B.Tech Computer Science',
-        state: 'Punjab',
-        income: 450000,
-        cgpa: '8.5'
-    },
-    intent: {
-        prompt: 'Find government engineering scholarships in Punjab I am eligible for and apply.',
-        type: 'government',
-        simulateDrift: false,
-        simulateMissingDoc: false
-    },
-    latestTelemetry: null,
-    auditLogs: [],
-    scholarships: [
-        {
-            id: 'SCH-PUN-ENG-01',
-            name: 'Punjab State Post-Matric Technical Scholarship',
-            provider: 'Punjab Department of Higher Education',
-            category: 'government',
-            state: 'Punjab',
-            amount: '₹85,000 / year',
-            field: 'Engineering / Technology',
-            min_cgpa: '7.5 CGPA',
-            income_limit: '₹5,00,000',
-            required_docs: ['income_certificate.pdf', 'domicile_punjab.pdf', 'marksheet.pdf'],
-            deadline: '2026-11-30',
-            eligible: true
-        },
-        {
-            id: 'SCH-FED-MERIT-02',
-            name: 'National Merit-Cum-Means Engineering Grant',
-            provider: 'Ministry of Electronics & IT (MeitY)',
-            category: 'government',
-            state: 'All India',
-            amount: '₹1,20,000 / year',
-            field: 'Computer Science / IT',
-            min_cgpa: '8.0 CGPA',
-            income_limit: '₹6,00,000',
-            required_docs: ['income_certificate.pdf', 'marksheet.pdf'],
-            deadline: '2026-12-15',
-            eligible: true
-        },
-        {
-            id: 'SCH-DEL-TECH-04',
-            name: 'Delhi State Technical Higher Education Scheme',
-            provider: 'Delhi Directorate of Training & Technical Education',
-            category: 'government',
-            state: 'Delhi',
-            amount: '₹95,000 / year',
-            field: 'Engineering',
-            min_cgpa: '7.0 CGPA',
-            income_limit: '₹4,00,000',
-            required_docs: ['domicile_delhi.pdf', 'income_certificate.pdf'],
-            deadline: '2026-10-31',
-            eligible: false,
-            ineligible_reason: 'Domicile requirement not matched (Punjab resident).'
-        },
-        {
-            id: 'SCH-PRV-GLOBAL-03',
-            name: 'Apex Global Foundation Private Leadership Award',
-            provider: 'Apex International Endowment (Private)',
-            category: 'private',
-            state: 'All India',
-            amount: '₹2,50,000 / year',
-            field: 'All STEM Degrees',
-            min_cgpa: '8.5 CGPA',
-            income_limit: 'None',
-            required_docs: ['essay.pdf', 'recommendation.pdf'],
-            deadline: '2026-10-15',
-            eligible: true,
-            is_private: true
-        }
-    ]
-};
-
-function initApp() {
-    initNavigation();
-    initIntentFabricCanvas();
-    renderScholarships();
-    initClock();
-    addAuditLog('SYSTEM_BOOT', 'ScholarShield frontend controller initialized with ArmorIQ runtime bindings.', 'cyan');
-}
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-} else {
-    initApp();
-}
-
-function initNavigation() {
-    const tabs = document.querySelectorAll('.nav-tab');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetTab = tab.getAttribute('data-tab');
-            switchTab(targetTab);
-        });
-    });
-}
-
-function switchTab(tabName) {
-    state.activeTab = tabName;
-    document.querySelectorAll('.nav-tab').forEach(btn => {
-        if (btn.getAttribute('data-tab') === tabName) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-
-    document.querySelectorAll('.tab-view').forEach(view => {
-        if (view.id === `view-${tabName}`) {
-            view.classList.add('active');
-        } else {
-            view.classList.remove('active');
-        }
-    });
-
-    if (tabName === 'scholarships') {
-        renderScholarships();
-    }
-}
-
-let canvasAnimId = null;
-function initIntentFabricCanvas() {
-    const canvas = document.getElementById('intent-fabric-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-
-    function resizeCanvas() {
-        if (canvas.parentElement) {
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
-        }
-    }
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-
-    const nodes = [
-        { x: 0.15, y: 0.35, label: 'Student Intent', color: '#38BDF8', size: 6 },
-        { x: 0.50, y: 0.25, label: 'Gemini 3.6', color: '#818CF8', size: 7 },
-        { x: 0.35, y: 0.75, label: 'ArmorIQ Policy', color: '#C084FC', size: 9 },
-        { x: 0.85, y: 0.70, label: 'FastMCP Server', color: '#34D399', size: 7 }
-    ];
-
-    let pulseTime = 0;
-    const particles = [];
-    for (let i = 0; i < 24; i++) {
-        particles.push({
-            x: Math.random(),
-            y: Math.random(),
-            vx: (Math.random() - 0.5) * 0.001,
-            vy: (Math.random() - 0.5) * 0.001,
-            radius: Math.random() * 2 + 1,
-            alpha: Math.random() * 0.5 + 0.2
-        });
-    }
-
-    function render() {
-        if (!canvas.width || !canvas.height) return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        pulseTime += 0.03;
-
-        ctx.strokeStyle = 'rgba(99, 102, 241, 0.05)';
-        ctx.lineWidth = 1;
-        const gridSize = 30;
-        for (let x = 0; x < canvas.width; x += gridSize) {
-            ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, canvas.height);
-            ctx.stroke();
-        }
-        for (let y = 0; y < canvas.height; y += gridSize) {
-            ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(canvas.width, y);
-            ctx.stroke();
-        }
-
-        particles.forEach(p => {
-            p.x += p.vx;
-            p.y += p.vy;
-            if (p.x < 0) p.x = 1;
-            if (p.x > 1) p.x = 0;
-            if (p.y < 0) p.y = 1;
-            if (p.y > 1) p.y = 0;
-
-            ctx.beginPath();
-            ctx.arc(p.x * canvas.width, p.y * canvas.height, p.radius, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(56, 189, 248, ${p.alpha * 0.5})`;
-            ctx.fill();
-        });
-
-        const edges = [
-            [0, 1],
-            [1, 2],
-            [2, 3],
-            [0, 2]
-        ];
-
-        edges.forEach(([i, j]) => {
-            const n1 = nodes[i];
-            const n2 = nodes[j];
-            const x1 = n1.x * canvas.width;
-            const y1 = n1.y * canvas.height;
-            const x2 = n2.x * canvas.width;
-            const y2 = n2.y * canvas.height;
-
-            ctx.beginPath();
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
-            ctx.strokeStyle = 'rgba(99, 102, 241, 0.25)';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-
-            const packetPos = (pulseTime + i * 0.3) % 1;
-            const px = x1 + (x2 - x1) * packetPos;
-            const py = y1 + (y2 - y1) * packetPos;
-
-            ctx.beginPath();
-            ctx.arc(px, py, 3, 0, Math.PI * 2);
-            ctx.fillStyle = '#FFF';
-            ctx.shadowColor = n1.color;
-            ctx.shadowBlur = 10;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-        });
-
-        nodes.forEach((n, idx) => {
-            const nx = n.x * canvas.width;
-            const ny = n.y * canvas.height;
-            const pulse = Math.sin(pulseTime * 2 + idx) * 2;
-
-            ctx.beginPath();
-            ctx.arc(nx, ny, n.size + 6 + pulse, 0, Math.PI * 2);
-            ctx.fillStyle = `${n.color}22`;
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(nx, ny, n.size, 0, Math.PI * 2);
-            ctx.fillStyle = n.color;
-            ctx.shadowColor = n.color;
-            ctx.shadowBlur = 12;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-        });
-
-        canvasAnimId = requestAnimationFrame(render);
-    }
-    render();
-}
-
-async function executeWorkflowFromDashboard() {
-    const runBtn = document.getElementById('dash-run-btn');
-    const runBtnText = document.getElementById('dash-run-btn-text');
-    const streamContainer = document.getElementById('dash-stream-container');
-    const agentStateBadge = document.getElementById('agent-state-badge');
-    const simDrift = document.getElementById('dash-sim-drift')?.checked || false;
-    const simMissingDoc = document.getElementById('dash-sim-missing-doc')?.checked || false;
-
-    const secAlert = document.getElementById('dash-security-alert');
-    if (secAlert) secAlert.classList.add('hidden');
-    const demAlert = document.getElementById('dash-demand-alert');
-    if (demAlert) demAlert.classList.add('hidden');
-    resetPipelineSteps();
-
-    if (runBtn) runBtn.disabled = true;
-    if (runBtnText) runBtnText.textContent = 'Orchestrating Plan & Minting ArmorIQ Token...';
-    if (agentStateBadge) {
-        agentStateBadge.className = 'badge-status chip-live';
-        agentStateBadge.innerHTML = '<span class="status-pulse pulse-indigo"></span> Running...';
-    }
-
-    setPipelineStep(1, 'active');
-    if (streamContainer) streamContainer.innerHTML = '';
-    appendStreamCard('01. Request Received', 'scholarship.student_intent', 'User initiated scholarship discovery order with target state constraint.', 'ALLOW');
-    addAuditLog('REQUEST_RECEIVED', `Initiated search for user '${state.student.name}' with state '${state.student.state}'.`, 'cyan');
-
-    try {
-        setPipelineStep(1, 'done');
-        setPipelineStep(2, 'active');
-        appendStreamCard('02. Plan Captured', 'gemini.planner', 'Synthesized 4-step sequential plan adhering to ArmorIQ policy boundary.', 'ALLOW');
-        addAuditLog('PLAN_CAPTURED', 'Gemini 3.6 Flash reasoning generated canonical plan with 4 tool steps.', 'indigo');
-
-        setPipelineStep(2, 'done');
-        setPipelineStep(3, 'active');
-        addAuditLog('TOKEN_REQUEST', 'Requesting cryptographic CSRG IntentToken from ArmorIQ IAP control plane...', 'purple');
-
-        const payload = {
-            student_name: state.student.name,
-            target_state: state.student.state,
-            target_field: state.student.field,
-            annual_income: state.student.income,
-            simulate_out_of_scope_violation: simDrift,
-            simulate_missing_document: simMissingDoc
-        };
-
-        const response = await fetch('/api/agent/run', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            let errorMsg = `Server error (HTTP ${response.status})`;
-            try {
-                const errJson = await response.json();
-                errorMsg = errJson.detail || errJson.message || errorMsg;
-            } catch (_) {}
-            throw new Error(errorMsg);
-        }
-
-        const data = await response.json();
-        state.latestTelemetry = data;
-
-        setPipelineStep(3, 'done');
-        setPipelineStep(4, 'active');
-
-        renderExecutionStream(data, streamContainer);
-
-        if (simDrift || data.blocked_steps > 0) {
-            setPipelineStep(4, 'blocked');
-            setPipelineStep(5, 'done');
-            showSecurityAlert(data);
-            showToast('⚠️ Consequential Action Blocked by ArmorIQ Policy Engine', 'rose');
-        } else if (simMissingDoc) {
-            setPipelineStep(4, 'active');
-            setPipelineStep(5, 'done');
-            showDemandAlert('income_certificate.pdf');
-            showToast('📄 Application Halted: Mandatory Certificate Required', 'amber');
-        } else {
-            setPipelineStep(4, 'done');
-            setPipelineStep(5, 'done');
-            showToast('✓ Workflow Completed with Full Cryptographic Assurance', 'emerald');
-        }
-
-        updateThoughtStream(data);
-
-    } catch (err) {
-        setPipelineStep(3, 'blocked');
-        appendStreamCard('Execution Error', 'system.error', err.message || 'Workflow execution error', 'BLOCK');
-        addAuditLog('EXECUTION_ERROR', err.message || 'Error occurred during agent workflow', 'red');
-        showToast(`Error: ${err.message}`, 'rose');
-    } finally {
-        if (runBtn) runBtn.disabled = false;
-        if (runBtnText) runBtnText.textContent = 'Execute Governed Agent Workflow';
-        if (agentStateBadge) {
-            agentStateBadge.className = 'badge-status badge-ready';
-            agentStateBadge.innerHTML = '<span class="status-pulse pulse-green"></span> Ready';
-        }
-    }
-}
-
-function renderExecutionStream(data, container) {
-    const steps = data.step_results || [];
-    steps.forEach((step, idx) => {
-        const stepNum = idx + 1;
-        const isAllow = (step.armoriq_decision === 'ALLOW' || step.status === 'COMPLETED');
-        const decisionTag = isAllow ? 'ALLOW' : 'BLOCK';
-        const actionName = step.action || 'mcp_tool_action';
-        let detailText = `Tool call '${actionName}' executed through FastMCP loopback proxy.`;
-
-        if (!isAllow) {
-            detailText = `BLOCKED by ArmorIQ: Consequential action denied. Reason: ${step.error_message || 'Target action is out-of-scope'}`;
-            addAuditLog('POLICY_BLOCK', `Action 'scholarship.${actionName}' BLOCKED by ArmorIQ. Invariant preserved.`, 'red');
-        } else {
-            addAuditLog('POLICY_ALLOW', `Action 'scholarship.${actionName}' verified with NIST P-256 ECDSA token. Invocation authorized.`, 'green');
-        }
-
-        appendStreamCard(`Step 0${stepNum}: ${actionName}`, `scholarship.${actionName}`, detailText, decisionTag);
-    });
-}
-
-function appendStreamCard(title, toolName, desc, decision) {
-    const container = document.getElementById('dash-stream-container');
-    if (!container) return;
-    const isAllow = (decision === 'ALLOW');
-    const badgeText = isAllow ? '🛡️ ARMORIQ: ALLOW' : '🚫 ARMORIQ: BLOCK';
-    const card = document.createElement('div');
-    card.className = `stream-card ${isAllow ? 'card-allow' : 'card-block'}`;
-    card.innerHTML = `
-        <div class="stream-card-header">
-            <span class="stream-tool-name">${toolName}</span>
-            <span class="${isAllow ? 'badge-allowed' : 'badge-blocked'}">${badgeText}</span>
-        </div>
-        <div class="stream-card-body">${desc}</div>
-        <div class="stream-card-meta">
-            <span>⏱️ ${new Date().toLocaleTimeString()}</span>
-            <span>🔒 ${isAllow ? 'ArmorIQ Proof of Authorization' : 'ArmorIQ Proof of Non-Execution (DB Count = 0)'}</span>
-        </div>
-    `;
-    container.appendChild(card);
-}
-
-function showSecurityAlert(data) {
-    const alertBox = document.getElementById('dash-security-alert');
-    if (alertBox) alertBox.classList.remove('hidden');
-    const actEl = document.getElementById('sec-alert-action');
-    if (actEl) actEl.textContent = 'scholarship.submit_application';
-    const tgtEl = document.getElementById('sec-alert-target');
-    if (tgtEl) tgtEl.textContent = 'SCH-PRV-GLOBAL-03 (Apex Private Award)';
-    const rsnEl = document.getElementById('sec-alert-reason');
-    if (rsnEl) rsnEl.textContent = 'Target scholarship violates signed intent policy. Out-of-scope private foundation scheme.';
-}
-
-function showDemandAlert(fileName) {
-    const alertBox = document.getElementById('dash-demand-alert');
-    if (alertBox) alertBox.classList.remove('hidden');
-    const docEl = document.getElementById('dash-demanded-doc');
-    if (docEl) docEl.textContent = fileName;
-}
-
-function resetPipelineSteps() {
-    for (let i = 1; i <= 5; i++) {
-        const step = document.getElementById(`pstep-${i}`);
-        if (step) step.className = 'pipe-step';
-    }
-}
-
-function setPipelineStep(stepIdx, status) {
-    const step = document.getElementById(`pstep-${stepIdx}`);
-    if (step) {
-        step.className = `pipe-step step-${status}`;
-    }
-}
-
-function renderScholarships() {
-    const grid = document.getElementById('scholarships-grid');
-    if (!grid) return;
-
-    const filterType = document.getElementById('filter-type')?.value || 'all';
-    const filterState = document.getElementById('filter-state')?.value || 'All India';
-
-    const filtered = state.scholarships.filter(s => {
-        if (filterType !== 'all' && s.category !== filterType) return false;
-        if (filterState !== 'All India' && s.state !== 'All India' && s.state !== filterState) return false;
-        return true;
-    });
-
-    grid.innerHTML = filtered.map(sch => `
-        <div class="sch-card">
-            <div>
-                <div class="sch-badge-row">
-                    <span class="badge-chip ${sch.category === 'government' ? 'chip-emerald' : 'chip-purple'}">
-                        ${sch.category.toUpperCase()}
-                    </span>
-                    <span class="font-mono text-muted" style="font-size:0.75rem;">${sch.state}</span>
-                </div>
-                <h3 class="sch-name">${sch.name}</h3>
-                <div class="sch-amount font-mono">${sch.amount}</div>
-                <div class="sch-criteria-list">
-                    <div><strong>Provider:</strong> ${sch.provider}</div>
-                    <div><strong>Min Criteria:</strong> ${sch.min_cgpa} | Income &lt; ${sch.income_limit}</div>
-                    <div><strong>Deadline:</strong> ${sch.deadline}</div>
-                </div>
-            </div>
-            <div class="sch-actions-row">
-                <button class="btn-primary-sm" onclick="checkSpecificEligibility('${sch.id}')">
-                    Check Eligibility
-                </button>
-                <button class="btn-outline" style="font-size:0.78rem; padding:6px 12px;" onclick="prepareApplicationDraft('${sch.id}')">
-                    Prepare Draft
-                </button>
-            </div>
-        </div>
-    `).join('');
-}
-
-function filterScholarships() {
-    renderScholarships();
-}
-
-function fetchLiveScholarships() {
-    renderScholarships();
-    showToast('Refreshed scholarship database from verified portals.', 'cyan');
-}
-
-function checkSpecificEligibility(id) {
-    const sch = state.scholarships.find(s => s.id === id);
-    if (!sch) return;
-    if (sch.eligible) {
-        showToast(`✓ Eligible for '${sch.name}' based on student profile!`, 'emerald');
-    } else {
-        showToast(`⚠️ Ineligible: ${sch.ineligible_reason || 'Criteria mismatch'}`, 'amber');
-    }
-}
-
-function prepareApplicationDraft(id) {
-    const sch = state.scholarships.find(s => s.id === id);
-    if (!sch) return;
-    showToast(`Draft prepared for '${sch.name}'. Ready for governed submission.`, 'indigo');
-    switchTab('dashboard');
-}
-
-function saveStudentProfile() {
-    const nameEl = document.getElementById('prof-name');
-    const eduEl = document.getElementById('prof-edu');
-    const stateEl = document.getElementById('prof-state');
-    const incEl = document.getElementById('prof-income');
-
-    if (nameEl) state.student.name = nameEl.value;
-    if (eduEl) state.student.field = eduEl.value;
-    if (stateEl) state.student.state = stateEl.value;
-    if (incEl) state.student.income = parseInt(incEl.value, 10);
-
-    const hdrName = document.getElementById('header-user-name');
-    if (hdrName) hdrName.textContent = state.student.name;
-    const tgtState = document.getElementById('dash-target-state');
-    if (tgtState) tgtState.textContent = state.student.state;
-    const tgtField = document.getElementById('dash-target-field');
-    if (tgtField) tgtField.textContent = state.student.field;
-    const tgtInc = document.getElementById('dash-target-income');
-    if (tgtInc) tgtInc.textContent = `₹${state.student.income.toLocaleString('en-IN')}`;
-
-    showToast('Student Profile Updated Successfully!', 'emerald');
-    addAuditLog('PROFILE_UPDATE', `Updated student profile for '${state.student.name}'.`, 'cyan');
-}
-
-async function handleDocumentUpload() {
-    const fileInput = document.getElementById('upload-doc-file');
-    const docTypeEl = document.getElementById('upload-doc-type');
-    const docType = docTypeEl ? docTypeEl.value : 'income_certificate';
-
-    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        showToast('Please select a PDF certificate to upload.', 'amber');
-        return;
-    }
-
-    const file = fileInput.files[0];
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('document_type', docType);
-    formData.append('student_id', state.student.id);
-
-    try {
-        await fetch('/api/documents/upload', {
-            method: 'POST',
-            body: formData
-        });
-
-        showToast(`✓ Document '${file.name}' verified and attached!`, 'emerald');
-
-        if (docType === 'income_certificate') {
-            const demAlert = document.getElementById('dash-demand-alert');
-            if (demAlert) demAlert.classList.add('hidden');
-            const fnameEl = document.getElementById('vault-income-fname');
-            if (fnameEl) fnameEl.textContent = file.name;
-            const statEl = document.getElementById('vault-income-status');
-            if (statEl) statEl.innerHTML = '<span class="badge-status badge-ready">Verified</span>';
-        }
-
-        addAuditLog('DOC_UPLOAD', `Uploaded and verified certificate '${file.name}' (${docType}).`, 'green');
-    } catch (_) {
-        showToast(`✓ Certificate '${file.name}' verified & attached to student record.`, 'emerald');
-        const demAlert = document.getElementById('dash-demand-alert');
-        if (demAlert) demAlert.classList.add('hidden');
-        addAuditLog('DOC_UPLOAD', `Uploaded certificate '${file.name}'.`, 'green');
-    }
-}
-
-function addAuditLog(tag, message, color) {
-    const now = new Date();
-    const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
-    state.auditLogs.push({ time: timeStr, tag, message, color });
-
-    const terminalBody = document.getElementById('audit-terminal-body');
-    if (terminalBody) {
-        const line = document.createElement('div');
-        line.className = 't-line';
-        line.innerHTML = `
-            <span class="t-timestamp">${timeStr}</span>
-            <span class="t-tag t-tag-${color}">${tag}</span>
-            ${message}
-        `;
-        terminalBody.appendChild(line);
-        terminalBody.scrollTop = terminalBody.scrollHeight;
-    }
-}
-
-function exportAuditLogJSON() {
-    const blob = new Blob([JSON.stringify(state.auditLogs, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `scholarshield-audit-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('Exported audit report as JSON.', 'cyan');
-}
-
-function initClock() {
-    const clock = document.getElementById('terminal-clock');
-    if (clock) {
-        setInterval(() => {
-            clock.textContent = new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
-        }, 1000);
-    }
-}
-
-function updateThoughtStream(data) {
-    const streamBox = document.getElementById('llm-thought-stream');
-    if (!streamBox) return;
-    streamBox.textContent = `[Gemini 3.6 Flash] Student requested verified scholarships in ${state.student.state}.
-[Plan Capture] Canonical plan captured with SHA-256 Merkle root.
-[ArmorIQ Policy] OPA zero-trust policy applied to FastMCP server 'scholarship'.
-[Completed Steps] ${data.completed_steps || 4} consequential tools authorized with NIST P-256 signatures.`;
-}
-
-function openOrderModal() {
-    const modal = document.getElementById('order-modal');
-    if (modal) modal.classList.remove('hidden');
-}
-
-function closeOrderModal() {
-    const modal = document.getElementById('order-modal');
-    if (modal) modal.classList.add('hidden');
-}
-
-function submitOrderModal() {
-    const nameEl = document.getElementById('modal-name');
-    const eduEl = document.getElementById('modal-edu');
-    const stateEl = document.getElementById('modal-state');
-    const incEl = document.getElementById('modal-income');
-    const promptEl = document.getElementById('modal-prompt');
-
-    if (nameEl) state.student.name = nameEl.value;
-    if (eduEl) state.student.field = eduEl.value;
-    if (stateEl) state.student.state = stateEl.value;
-    if (incEl) state.student.income = parseInt(incEl.value, 10);
-    if (promptEl) state.intent.prompt = promptEl.value;
-
-    const actPrompt = document.getElementById('dash-active-prompt');
-    if (actPrompt) actPrompt.textContent = `"${state.intent.prompt}"`;
-    const tgtState = document.getElementById('dash-target-state');
-    if (tgtState) tgtState.textContent = state.student.state;
-    const tgtField = document.getElementById('dash-target-field');
-    if (tgtField) tgtField.textContent = state.student.field;
-    const tgtInc = document.getElementById('dash-target-income');
-    if (tgtInc) tgtInc.textContent = `₹${state.student.income.toLocaleString('en-IN')}`;
-
-    closeOrderModal();
-    executeWorkflowFromDashboard();
-}
-
-function showToast(message, color = 'cyan') {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-    const toast = document.createElement('div');
-    toast.className = 'toast-message';
-    toast.innerHTML = `<span>${message}</span>`;
-    container.appendChild(toast);
-    setTimeout(() => {
-        toast.remove();
-    }, 4000);
-}
-
-// Window Global Bindings
-window.switchTab = switchTab;
-window.executeWorkflowFromDashboard = executeWorkflowFromDashboard;
-window.openOrderModal = openOrderModal;
-window.closeOrderModal = closeOrderModal;
-window.submitOrderModal = submitOrderModal;
-window.saveStudentProfile = saveStudentProfile;
-window.handleDocumentUpload = handleDocumentUpload;
-window.exportAuditLogJSON = exportAuditLogJSON;
-window.fetchLiveScholarships = fetchLiveScholarships;
-window.filterScholarships = filterScholarships;
-window.checkSpecificEligibility = checkSpecificEligibility;
-window.prepareApplicationDraft = prepareApplicationDraft;
-window.showToast = showToast;
-    </script>
 </body>
 </html>
+

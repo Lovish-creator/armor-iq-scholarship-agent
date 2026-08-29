@@ -390,6 +390,25 @@ class ArmorIQWrapperClient:
         return False
 
     def _is_out_of_scope(self, action: str, params: Optional[Dict[str, Any]]) -> bool:
+        # 1. Allowed actions check against ArmorIQ policy
+        allowed_actions = {
+            "search_scholarships",
+            "check_eligibility",
+            "prepare_application",
+            "submit_application",
+        }
+        if action not in allowed_actions:
+            return True
+
+        # 2. Captured plan step alignment check
+        if hasattr(self, "_last_plan") and self._last_plan and hasattr(self._last_plan, "plan"):
+            plan_obj = self._last_plan.plan
+            if isinstance(plan_obj, dict):
+                plan_steps = plan_obj.get("steps") or []
+                plan_actions = {s.get("action") for s in plan_steps if isinstance(s, dict)}
+                if plan_actions and action not in plan_actions:
+                    return True
+
         if not params:
             return False
         stype = str(params.get("scholarship_type", "")).lower()
@@ -863,10 +882,7 @@ class ArmorIQWrapperClient:
                     "Invalid local demo token."
                 )
 
-            scholarship_id = str((params or {}).get("scholarship_id", ""))
-            scholarship_type = str((params or {}).get("scholarship_type", "")).lower()
-
-            if (scholarship_type == "private" or "PRV" in scholarship_id) and action == "submit_application":
+            if self._is_out_of_scope(action, params):
                 return {
                     "decision": "BLOCK",
                     "status": "blocked",
@@ -878,8 +894,8 @@ class ArmorIQWrapperClient:
                     "action": action,
                     "params": params,
                     "error": (
-                        "ArmorIQ Intent Violation: Attempted submission to "
-                        "unauthorized private scholarship outside government intent scope."
+                        f"ArmorIQ Intent Violation: Action '{action}' or target parameter is "
+                        "outside approved intent plan and policy scope."
                     ),
                 }
 
