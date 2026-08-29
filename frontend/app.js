@@ -209,12 +209,11 @@ async function triggerAgentWorkflow() {
     } catch (err) {
         if (timelineList) {
             timelineList.innerHTML = `
-                <li class="timeline-item">
-                    <div
-                        class="step-title"
-                        style="color:#ef4444;"
-                    >
-                        Execution Error:
+                <li class="timeline-item" style="border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.05); padding: 12px; border-radius: 6px;">
+                    <div class="step-title" style="color:#ef4444; font-weight: bold; margin-bottom: 6px;">
+                        ⚠️ Workflow Execution Error
+                    </div>
+                    <div class="step-desc" style="color:#cbd5e1; font-size: 13px; line-height: 1.5;">
                         ${err?.message || "Unknown error"}
                     </div>
                 </li>
