@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  scholarshield:
+    build: .
+    container_name: scholarshield-agent
+    ports:
+      - "8080:8080"
+    environment:
+      - ARMORIQ_API_KEY=${ARMORIQ_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - SINGLE_PORT=true
+      - PORTAL_BASE_URL=http://127.0.0.1:8080
+    restart: unless-stopped

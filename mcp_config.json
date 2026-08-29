@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "scholarshield": {
+      "command": "python",
+      "args": ["-m", "uvicorn", "app.main:app", "--port", "8080"],
+      "env": {
+        "ARMORIQ_API_KEY": "${ARMORIQ_API_KEY}",
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}"
+      }
+    },
+    "zopnight": {
+      "url": "https://api.zop.dev/mcp-server",
+      "headers": {
+        "Authorization": "Bearer ${ZOP_PAT_TOKEN}"
+      }
+    }
+  }
+}
