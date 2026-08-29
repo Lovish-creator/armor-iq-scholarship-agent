@@ -182,11 +182,10 @@ class ArmorIQWrapperClient:
         # LOAD CONFIG
         # ----------------------------------------------------
 
-        self.api_key = (
-            api_key
-            or os.getenv("ARMORIQ_API_KEY")
-            or ""
-        ).strip()
+        raw_key = api_key or os.getenv("ARMORIQ_API_KEY") or ""
+        self.api_key = raw_key.strip().strip('"').strip("'")
+        if self.api_key:
+            os.environ["ARMORIQ_API_KEY"] = self.api_key
 
         self.mode = (
             os.getenv(
@@ -322,7 +321,6 @@ class ArmorIQWrapperClient:
     # ========================================================
 
     def _detect_demo_mode(self) -> bool:
-
         if self.mode in {
             "demo",
             "local",
@@ -330,24 +328,27 @@ class ArmorIQWrapperClient:
         }:
             return True
 
-        if self.mode in {
-            "real",
-            "production",
-            "live",
-        }:
+        valid_key = bool(
+            self.api_key
+            and (
+                self.api_key.startswith("ak_live_")
+                or self.api_key.startswith("ak_test_")
+                or self.api_key.startswith("ak_claw_")
+            )
+        )
+
+        if not valid_key:
             if not self.api_key:
                 logger.info(
                     "No ARMORIQ_API_KEY detected. Automatically using local demo mode."
                 )
-                return True
-            return False
+            else:
+                logger.warning(
+                    "ARMORIQ_API_KEY format is invalid (keys must start with 'ak_live_', 'ak_claw_', or 'ak_test_'). Using local demo mode."
+                )
+            return True
 
-        # Automatic fallback:
-        #
-        # No API key -> demo
-        # API key -> real
-        #
-        return not bool(self.api_key)
+        return False
 
     def _verify_token_cryptography(self, raw_token: Any) -> bool:
         token_data = (raw_token or {}).get("token") or {}

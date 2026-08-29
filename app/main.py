@@ -1,5 +1,11 @@
+import os
 import uvicorn
 import httpx
+from dotenv import load_dotenv
+
+# Load environment variables before any other module initializations
+load_dotenv(override=True)
+
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
