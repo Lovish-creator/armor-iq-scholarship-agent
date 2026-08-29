@@ -24,13 +24,10 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt && \
     (pip install --no-cache-dir armoriq-sdk || true)
 
-# Copy application files
-COPY app/ ./app/
-COPY frontend/ ./frontend/
-COPY mock_portal/ ./mock_portal/
-COPY policies/ ./policies/
+# Copy complete project codebase
+COPY . .
 
-# Expose server port
+# Expose server ports
 EXPOSE 8080 80 3000
 
 # Start FastAPI server using dynamic PORT environment variable
