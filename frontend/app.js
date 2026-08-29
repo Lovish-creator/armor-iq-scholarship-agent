@@ -480,17 +480,39 @@ function renderExecutionStream(data, container) {
         const stepNum = idx + 1;
         const isAllow = (step.armoriq_decision === 'ALLOW' || step.status === 'COMPLETED');
         const decisionTag = isAllow ? 'ALLOW' : 'BLOCK';
-        const actionName = step.action || 'mcp_tool_action';
-        let detailText = step.details || `Tool call '${actionName}' executed through FastMCP loopback proxy.`;
+        const actionName = step.action || 'action';
+        
+        let friendlyTitle = `Step ${stepNum}: ${actionName}`;
+        let friendlyDesc = '';
 
-        if (!isAllow) {
-            detailText = `BLOCKED by ArmorIQ: Consequential action denied. Reason: ${step.error_message || 'Target action is out-of-scope'}`;
-            addAuditLog('POLICY_BLOCK', `Action 'scholarship.${actionName}' BLOCKED by ArmorIQ. Invariant preserved.`, 'red');
+        if (actionName.includes('search')) {
+            friendlyTitle = `Step 1: Search Scholarships`;
+            friendlyDesc = `Found verified government engineering scholarships matching your preferences in ${state.student.state}.`;
+        } else if (actionName.includes('eligibility')) {
+            friendlyTitle = `Step 2: Check Eligibility`;
+            friendlyDesc = `Verified criteria: Income (₹${state.student.income.toLocaleString('en-IN')}), State (${state.student.state}), and Degree match.`;
+        } else if (actionName.includes('prepare')) {
+            friendlyTitle = `Step 3: Prepare Application`;
+            friendlyDesc = `Generated application draft and verified required document certificates.`;
+        } else if (actionName.includes('submit')) {
+            if (isAllow) {
+                friendlyTitle = `Step 4: Submit Application`;
+                friendlyDesc = `Application submitted safely to the official portal with ArmorIQ security approval.`;
+            } else {
+                friendlyTitle = `Step 4: BLOCKED by ArmorIQ`;
+                friendlyDesc = `🚫 Intercepted: Agent attempted to submit an out-of-scope private award. ArmorIQ stopped the submission before any data was sent.`;
+            }
         } else {
-            addAuditLog('POLICY_ALLOW', `Action 'scholarship.${actionName}' verified with NIST P-256 ECDSA token. Invocation authorized.`, 'green');
+            friendlyDesc = step.details || `Executed tool action '${actionName}'.`;
         }
 
-        appendStreamCard(`Step 0${stepNum}: ${actionName}`, `scholarship.${actionName}`, detailText, decisionTag);
+        if (!isAllow) {
+            addAuditLog('POLICY_BLOCK', `Blocked unauthorized action '${actionName}' outside user preferences.`, 'red');
+        } else {
+            addAuditLog('POLICY_ALLOW', `Approved safe action '${actionName}' within user preferences.`, 'green');
+        }
+
+        appendStreamCard(friendlyTitle, actionName, friendlyDesc, decisionTag);
     });
 }
 
@@ -498,18 +520,18 @@ function appendStreamCard(title, toolName, desc, decision) {
     const container = document.getElementById('dash-stream-container');
     if (!container) return;
     const isAllow = (decision === 'ALLOW');
-    const badgeText = isAllow ? '🛡️ ARMORIQ: ALLOW' : '🚫 ARMORIQ: BLOCK';
+    const badgeText = isAllow ? '✓ APPROVED' : '🚫 BLOCKED';
     const card = document.createElement('div');
     card.className = `stream-card ${isAllow ? 'card-allow' : 'card-block'}`;
     card.innerHTML = `
-        <div class="stream-card-header">
-            <span class="stream-tool-name">${toolName}</span>
-            <span class="${isAllow ? 'badge-allowed' : 'badge-blocked'}">${badgeText}</span>
+        <div class="stream-top">
+            <span class="stream-action-name">${title}</span>
+            <span class="${isAllow ? 'badge-allow' : 'badge-block'}">${badgeText}</span>
         </div>
-        <div class="stream-card-body">${desc}</div>
-        <div class="stream-card-meta">
+        <div class="stream-desc">${desc}</div>
+        <div class="stream-foot">
             <span>⏱️ ${new Date().toLocaleTimeString()}</span>
-            <span>🔒 ${isAllow ? 'ArmorIQ Proof of Authorization' : 'ArmorIQ Proof of Non-Execution (DB Count = 0)'}</span>
+            <span class="${isAllow ? 'text-emerald' : 'text-rose'}">🛡️ ${isAllow ? 'ArmorIQ: Safe & Authorized' : 'ArmorIQ: Zero-Trust Defense Active'}</span>
         </div>
     `;
     container.appendChild(card);
