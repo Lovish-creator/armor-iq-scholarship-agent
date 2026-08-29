@@ -81,16 +81,27 @@ class WorkflowRunRequest(BaseModel):
 
 @app.get("/")
 def read_root():
-    return FileResponse("frontend/index.html")
+    return FileResponse(
+        "frontend/index.html",
+        media_type="text/html",
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+    )
 
 @app.get("/styles.css")
 def serve_styles():
-    return FileResponse("frontend/styles.css")
-
+    return FileResponse(
+        "frontend/styles.css",
+        media_type="text/css",
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+    )
 
 @app.get("/app.js")
 def serve_app_js():
-    return FileResponse("frontend/app.js")
+    return FileResponse(
+        "frontend/app.js",
+        media_type="application/javascript",
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+    )
 
 @app.post("/api/agent/run", response_model=AgentRunSummary)
 def run_agent_workflow(req: WorkflowRunRequest):
