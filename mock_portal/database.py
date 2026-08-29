@@ -108,7 +108,7 @@ def init_db():
         json.dumps(["marksheet_12th.pdf", "income_certificate.pdf", "domicile_punjab.pdf", "bonafide_certificate.pdf"])
     ))
 
-    # Seed Synthetic Scholarships
+    # Seed Synthetic & Live Verified Scholarships (Buddy4Study, NSP, AICTE, Reliance, Tata, Kotak, JSW, HDFC)
     cursor.execute("DELETE FROM scholarships")
     scholarships = [
         (
@@ -136,52 +136,124 @@ def init_db():
             json.dumps(["marksheet_12th.pdf", "income_certificate.pdf", "domicile_maharashtra.pdf"])
         ),
         (
-            "SCH-PRV-GLOBAL-03",
-            "Global Tech Foundation Excellence Award",
-            "private",
-            json.dumps(["All India"]),
-            json.dumps(["Engineering", "Computer Science", "Data Science"]),
-            1200000,
-            8.0,
-            120000,
-            "2026-12-31",
-            json.dumps(["marksheet_12th.pdf", "bonafide_certificate.pdf"])
-        ),
-        (
-            "SCH-GOV-MED-04",
-            "Punjab Medical & Healthcare Fellowship",
+            "SCH-GOV-AICTE-PRAGATI",
+            "AICTE Pragati Scholarship Scheme for Girl Students",
             "government",
-            json.dumps(["Punjab"]),
-            json.dumps(["Medicine", "Pharmacy", "Nursing"]),
-            500000,
-            7.5,
-            90000,
-            "2026-09-30",
-            json.dumps(["marksheet_12th.pdf", "income_certificate.pdf", "domicile_punjab.pdf"])
-        ),
-        (
-            "SCH-WEB-001",
-            "State Post-Matric Higher Education Grant",
-            "government",
-            json.dumps(["Punjab", "Maharashtra", "Delhi", "All India"]),
-            json.dumps(["Engineering", "Computer Science", "Technology", "IT"]),
+            json.dumps(["All India", "Punjab", "Delhi", "Maharashtra", "Karnataka", "Tamil Nadu"]),
+            json.dumps(["Engineering", "Computer Science", "Technology", "Information Technology", "Pharmacy", "Architecture"]),
             800000,
             6.0,
-            80000,
-            "2026-11-30",
-            json.dumps(["marksheet_12th.pdf", "income_certificate.pdf", "domicile_punjab.pdf", "domicile_proof.pdf"])
+            50000,
+            "2026-10-31",
+            json.dumps(["marksheet_12th.pdf", "income_certificate.pdf", "admission_letter.pdf", "tuition_fee_receipt.pdf", "aadhaar_card.pdf", "bank_passbook.pdf"])
         ),
         (
-            "SCH-WEB-002",
-            "Global Tech Foundation National Excellence Award",
+            "SCH-GOV-AICTE-SAKSHAM",
+            "AICTE Saksham Scholarship Scheme for Specially-Abled Students",
+            "government",
+            json.dumps(["All India", "Punjab", "Delhi", "Maharashtra", "Karnataka"]),
+            json.dumps(["Engineering", "Computer Science", "Technology", "Pharmacy", "Diploma"]),
+            800000,
+            5.5,
+            50000,
+            "2026-10-31",
+            json.dumps(["marksheet_12th.pdf", "income_certificate.pdf", "disability_certificate.pdf", "admission_letter.pdf", "tuition_fee_receipt.pdf", "bank_passbook.pdf"])
+        ),
+        (
+            "SCH-GOV-NSP-CSSS",
+            "Central Sector Scheme of Scholarship for College & University Students (PM-USP)",
+            "government",
+            json.dumps(["All India", "Punjab", "Delhi", "Maharashtra", "Tamil Nadu", "Uttar Pradesh"]),
+            json.dumps(["Engineering", "Computer Science", "Technology", "Medicine", "General Degree", "Science"]),
+            450000,
+            7.5,
+            20000,
+            "2026-10-31",
+            json.dumps(["marksheet_12th.pdf", "income_certificate.pdf", "bonafide_certificate.pdf", "fee_receipt.pdf", "aadhaar_card.pdf", "bank_passbook.pdf"])
+        ),
+        (
+            "SCH-PRV-RELIANCE-UG",
+            "Reliance Foundation Undergraduate Scholarship 2026-27",
+            "private",
+            json.dumps(["All India", "Punjab", "Delhi", "Maharashtra", "Gujarat", "Karnataka"]),
+            json.dumps(["Engineering", "Computer Science", "Information Technology", "Data Science", "Medicine", "General Degree"]),
+            1500000,
+            6.0,
+            200000,
+            "2026-10-05",
+            json.dumps(["marksheet_12th.pdf", "income_certificate.pdf", "admission_letter.pdf", "aadhaar_card.pdf", "bank_passbook.pdf", "bonafide_certificate.pdf"])
+        ),
+        (
+            "SCH-PRV-TATA-PANKH",
+            "Tata Capital Pankh Scholarship Programme for Undergraduate Students",
+            "private",
+            json.dumps(["All India", "Punjab", "Delhi", "Maharashtra", "West Bengal", "Tamil Nadu"]),
+            json.dumps(["Engineering", "Technology", "Computer Science", "Medicine", "General Degree", "Diploma"]),
+            400000,
+            6.0,
+            100000,
+            "2026-09-30",
+            json.dumps(["marksheet_12th.pdf", "income_certificate.pdf", "admission_letter.pdf", "tuition_fee_receipt.pdf", "aadhaar_card.pdf", "bank_passbook.pdf"])
+        ),
+        (
+            "SCH-PRV-KOTAK-KANYA",
+            "Kotak Kanya Scholarship for Professional Higher Education",
+            "private",
+            json.dumps(["All India", "Punjab", "Delhi", "Maharashtra", "Karnataka", "Telangana"]),
+            json.dumps(["Engineering", "Computer Science", "Medicine", "Architecture", "Design", "Integrated LLB"]),
+            600000,
+            7.5,
+            150000,
+            "2026-08-31",
+            json.dumps(["marksheet_12th.pdf", "income_certificate.pdf", "admission_letter.pdf", "bonafide_certificate.pdf", "aadhaar_card.pdf", "bank_passbook.pdf"])
+        ),
+        (
+            "SCH-PRV-JSW-UDAAN",
+            "JSW Udaan Scholarship for Higher & Technical Education",
+            "private",
+            json.dumps(["All India", "Punjab", "Maharashtra", "Karnataka", "Tamil Nadu", "Rajasthan", "Goa", "Odisha"]),
+            json.dumps(["Engineering", "Technology", "Computer Science", "Diploma", "Polytechnic"]),
+            800000,
+            6.0,
+            50000,
+            "2026-10-31",
+            json.dumps(["marksheet_12th.pdf", "marksheet_10th.pdf", "income_certificate.pdf", "admission_letter.pdf", "fee_receipt.pdf", "aadhaar_card.pdf", "bank_passbook.pdf"])
+        ),
+        (
+            "SCH-PRV-HDFC-ECSS",
+            "HDFC Bank Parivartan's Educational Crisis Scholarship Support (ECSS)",
+            "private",
+            json.dumps(["All India", "Punjab", "Delhi", "Maharashtra", "Karnataka", "Uttar Pradesh"]),
+            json.dumps(["Engineering", "Computer Science", "General Degree", "Medicine", "Diploma"]),
+            250000,
+            5.5,
+            75000,
+            "2026-10-31",
+            json.dumps(["marksheet_12th.pdf", "income_certificate.pdf", "admission_letter.pdf", "tuition_fee_receipt.pdf", "aadhaar_card.pdf", "bank_passbook.pdf"])
+        ),
+        (
+            "SCH-DEL-TECH-04",
+            "Delhi State Technical Higher Education Scheme",
+            "government",
+            json.dumps(["Delhi"]),
+            json.dumps(["Engineering", "Polytechnic", "Technology"]),
+            400000,
+            7.0,
+            95000,
+            "2026-10-31",
+            json.dumps(["domicile_delhi.pdf", "income_certificate.pdf", "marksheet_12th.pdf"])
+        ),
+        (
+            "SCH-PRV-GLOBAL-03",
+            "Apex Global Foundation Private Leadership Award",
             "private",
             json.dumps(["All India"]),
             json.dumps(["Engineering", "Technology", "Computer Science"]),
             1200000,
-            8.0,
-            120000,
+            8.5,
+            250000,
             "2026-12-31",
-            json.dumps(["marksheet_12th.pdf", "bonafide_certificate.pdf"])
+            json.dumps(["essay.pdf", "recommendation.pdf"])
         )
     ]
 
