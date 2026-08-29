@@ -85,14 +85,19 @@ const state = {
     ]
 };
 
-// Initialization on DOM Load
-document.addEventListener('DOMContentLoaded', () => {
+function initApp() {
     initNavigation();
     initIntentFabricCanvas();
     renderScholarships();
     initClock();
     addAuditLog('SYSTEM_BOOT', 'ScholarShield frontend controller initialized with ArmorIQ runtime bindings.', 'cyan');
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
 
 // ============================================================
 // NAVIGATION TAB CONTROLLER
@@ -688,3 +693,18 @@ function showToast(message, color = 'cyan') {
         toast.remove();
     }, 4000);
 }
+
+// Global Window Exports
+window.switchTab = switchTab;
+window.executeWorkflowFromDashboard = executeWorkflowFromDashboard;
+window.openOrderModal = openOrderModal;
+window.closeOrderModal = closeOrderModal;
+window.submitOrderModal = submitOrderModal;
+window.saveStudentProfile = saveStudentProfile;
+window.handleDocumentUpload = handleDocumentUpload;
+window.exportAuditLogJSON = exportAuditLogJSON;
+window.fetchLiveScholarships = fetchLiveScholarships;
+window.filterScholarships = filterScholarships;
+window.checkSpecificEligibility = checkSpecificEligibility;
+window.prepareApplicationDraft = prepareApplicationDraft;
+window.showToast = showToast;
