@@ -19,7 +19,7 @@ class ScholarshipService:
         # `ALLOW_MOCK_PORTAL_FALLBACK=false` to avoid accidentally using the
         # mock portal when the real portal is unreachable.
         self.allow_mock_portal_fallback = os.getenv("ALLOW_MOCK_PORTAL_FALLBACK", "true").lower() in ("1", "true", "yes")
-        self.single_port = os.getenv("SINGLE_PORT", "false").lower() in ("1", "true", "yes")
+        self.single_port = os.getenv("SINGLE_PORT", "true").lower() in ("1", "true", "yes")
 
     def search_scholarships(self, scholarship_type: Optional[str] = None, state: Optional[str] = None) -> List[ScholarshipItem]:
         params = {}

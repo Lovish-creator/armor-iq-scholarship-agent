@@ -17,7 +17,7 @@ if TEST_SHIM_ENABLED:
 from app.scholarship.service import ScholarshipService
 
 # Single-port local mode: optionally mount the mock portal into the main app
-SINGLE_PORT = os.getenv("SINGLE_PORT", "false").lower() in ("1", "true", "yes")
+SINGLE_PORT = os.getenv("SINGLE_PORT", "true").lower() in ("1", "true", "yes")
 if SINGLE_PORT:
     try:
         from mock_portal.routes import router as mock_router
@@ -138,13 +138,23 @@ def run_agent_workflow(req: WorkflowRunRequest):
     except Exception as exc:
         err_msg = str(exc)
         exc_name = type(exc).__name__
-        if "Invalid API Key" in err_msg or "InvalidTokenException" in exc_name or "ConfigurationException" in exc_name:
-            raise HTTPException(status_code=401, detail=f"ArmorIQ Authentication / Key Configuration Error: {err_msg}")
-        if "IntentMismatchException" in exc_name:
+        err_msg_lower = err_msg.lower()
+        if (
+            "invalid api key" in err_msg_lower
+            or "invalid or expired api key" in err_msg_lower
+            or "token issuance failed" in err_msg_lower
+            or "invalidtokenexception" in exc_name.lower()
+            or "configurationexception" in exc_name.lower()
+        ):
+            raise HTTPException(
+                status_code=401,
+                detail=f"ArmorIQ Authentication / Key Configuration Error: {err_msg}. Please check ARMORIQ_API_KEY in .env."
+            )
+        if "intentmismatchexception" in exc_name.lower():
             raise HTTPException(status_code=403, detail=f"ArmorIQ Intent Violation: {err_msg}")
-        if "PolicyBlockedException" in exc_name:
+        if "policyblockedexception" in exc_name.lower():
             raise HTTPException(status_code=403, detail=f"ArmorIQ Policy Blocked: {err_msg}")
-        if "MCPInvocationException" in exc_name:
+        if "mcpinvocationexception" in exc_name.lower():
             raise HTTPException(status_code=502, detail=f"Scholarship MCP Server Unavailable or Failed: {err_msg}")
         raise HTTPException(status_code=500, detail=f"Agent Workflow Execution Error: {err_msg}")
 
