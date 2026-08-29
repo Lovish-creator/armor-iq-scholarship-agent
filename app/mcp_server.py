@@ -1,89 +1,125 @@
-from typing import Any, Dict, Optional
-
-from mcp.server.fastmcp import FastMCP
-
+import uvicorn
+from fastapi import FastAPI, Request
+from typing import Any, Dict, Optional, List
 from app.tools.scholarship_tools import ScholarshipMCPTools
 
-
-mcp = FastMCP(
-    "mcp_scholarship_tool",
-    json_response=True,
-)
-
+app = FastAPI(title="Scholarship MCP Server", version="1.0.0")
 tools = ScholarshipMCPTools()
 
+TOOL_DEFINITIONS = [
+    {
+        "name": "search_scholarships",
+        "description": "Search scholarships by type and state",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "scholarship_type": {"type": "string", "description": "Type of scholarship (government, private, all)"},
+                "state": {"type": "string", "description": "Target state"}
+            }
+        }
+    },
+    {
+        "name": "check_eligibility",
+        "description": "Check student eligibility for a scholarship",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "student_id": {"type": "string"},
+                "scholarship_id": {"type": "string"}
+            },
+            "required": ["student_id", "scholarship_id"]
+        }
+    },
+    {
+        "name": "prepare_application",
+        "description": "Prepare a scholarship application draft",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "student_id": {"type": "string"},
+                "scholarship_id": {"type": "string"}
+            },
+            "required": ["student_id", "scholarship_id"]
+        }
+    },
+    {
+        "name": "submit_application",
+        "description": "Submit a scholarship application with ArmorIQ intent token",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "student_id": {"type": "string"},
+                "scholarship_id": {"type": "string"},
+                "intent_token": {"type": "string"},
+                "armoriq_decision": {"type": "string", "default": "ALLOW"}
+            },
+            "required": ["student_id", "scholarship_id", "intent_token"]
+        }
+    }
+]
 
-@mcp.tool()
-def search_scholarships(
-    scholarship_type: Optional[str] = None,
-    state: Optional[str] = None,
-) -> Dict[str, Any]:
-    """Search scholarships by type and state."""
-    return tools.search_scholarships(
-        scholarship_type=scholarship_type,
-        state=state,
-    )
+@app.post("/mcp")
+@app.post("/")
+async def handle_mcp_jsonrpc(request: Request):
+    data = await request.json()
+    req_id = data.get("id", 1)
+    method = data.get("method")
+    params = data.get("params", {})
 
+    if method == "initialize":
+        return {
+            "jsonrpc": "2.0",
+            "id": req_id,
+            "result": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {"tools": {}},
+                "serverInfo": {"name": "scholarship", "version": "1.0.0"}
+            }
+        }
 
-@mcp.tool()
-def check_eligibility(
-    student_id: str,
-    scholarship_id: str,
-) -> Dict[str, Any]:
-    """Check student eligibility for a scholarship."""
-    return tools.check_eligibility(
-        student_id=student_id,
-        scholarship_id=scholarship_id,
-    )
+    elif method == "tools/list":
+        return {
+            "jsonrpc": "2.0",
+            "id": req_id,
+            "result": {
+                "tools": TOOL_DEFINITIONS
+            }
+        }
 
+    elif method == "tools/call":
+        name = params.get("name", "")
+        arguments = params.get("arguments", {})
+        action = name.replace("scholarship.", "")
 
-@mcp.tool()
-def prepare_application(
-    student_id: str,
-    scholarship_id: str,
-) -> Dict[str, Any]:
-    """Prepare a scholarship application draft."""
-    return tools.prepare_application(
-        student_id=student_id,
-        scholarship_id=scholarship_id,
-    )
+        if action == "search_scholarships":
+            res = tools.search_scholarships(**arguments)
+        elif action == "check_eligibility":
+            res = tools.check_eligibility(**arguments)
+        elif action == "prepare_application":
+            res = tools.prepare_application(**arguments)
+        elif action == "submit_application":
+            res = tools.submit_application(**arguments)
+        else:
+            return {
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "error": {"code": -32601, "message": f"Method {name} not found"}
+            }
 
+        return {
+            "jsonrpc": "2.0",
+            "id": req_id,
+            "result": {
+                "content": [{"type": "text", "text": str(res)}],
+                "isError": False
+            }
+        }
 
-@mcp.tool()
-def submit_application(
-    student_id: str,
-    scholarship_id: str,
-    intent_token: str,
-    armoriq_decision: str = "ALLOW",
-) -> Dict[str, Any]:
-    """
-    Submit a scholarship application.
-
-    This is the consequential operation and requires
-    an explicit ArmorIQ ALLOW decision.
-    """
-
-    if not intent_token:
-        raise ValueError(
-            "intent_token is required for protected submission."
-        )
-
-    if armoriq_decision != "ALLOW":
-        raise PermissionError(
-            "Submission rejected because ArmorIQ did not return ALLOW."
-        )
-
-    return tools.submit_application(
-        student_id=student_id,
-        scholarship_id=scholarship_id,
-        intent_token=intent_token,
-        armoriq_decision="ALLOW",
-    )
-
+    return {
+        "jsonrpc": "2.0",
+        "id": req_id,
+        "result": {}
+    }
 
 if __name__ == "__main__":
-    mcp.run(
-        transport="streamable-http",
-        host="127.0.0.1",
-        port=9000,
-    )
+    uvicorn.run("app.mcp_server:app", host="127.0.0.1", port=9000, log_level="info")

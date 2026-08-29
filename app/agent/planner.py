@@ -135,7 +135,7 @@ class AgentPlanner:
             PlanStep(
                 step_id=1,
                 action="search_scholarships",
-                tool="mcp_scholarship_tool",
+                tool="scholarship",
                 description=(
                     f"Search for {final_scholarship_type} "
                     f"scholarships in {final_state} "
@@ -154,7 +154,7 @@ class AgentPlanner:
             PlanStep(
                 step_id=2,
                 action="check_eligibility",
-                tool="mcp_scholarship_tool",
+                tool="scholarship",
                 description=(
                     f"Check eligibility of student "
                     f"{intent.user_name} for "
@@ -173,7 +173,7 @@ class AgentPlanner:
             PlanStep(
                 step_id=3,
                 action="prepare_application",
-                tool="mcp_scholarship_tool",
+                tool="scholarship",
                 description=(
                     f"Prepare application for "
                     f"{final_scholarship_id}"
@@ -202,7 +202,7 @@ class AgentPlanner:
                 PlanStep(
                     step_id=4,
                     action="submit_application",
-                    tool="mcp_scholarship_tool",
+                    tool="scholarship",
                     description=(
                         "Attempt to submit an "
                         "out-of-scope private scholarship"
@@ -222,7 +222,7 @@ class AgentPlanner:
                 PlanStep(
                     step_id=4,
                     action="submit_application",
-                    tool="mcp_scholarship_tool",
+                    tool="scholarship",
                     description=(
                         f"Submit application for "
                         f"{final_scholarship_id}"

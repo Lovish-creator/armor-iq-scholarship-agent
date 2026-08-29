@@ -88,20 +88,30 @@ def serve_app_js():
 
 @app.post("/api/agent/run", response_model=AgentRunSummary)
 def run_agent_workflow(req: WorkflowRunRequest):
-    # Dynamically register user identity in database for the entered state & name!
     try:
-        with httpx.Client(timeout=5.0) as http_client:
-            http_client.post(
-                f"{portal_base}/api/student/register",
-                json={
-                    "student_id": "student-demo-001",
-                    "name": req.student_name,
-                    "education": req.target_field,
-                    "state": req.target_state,
-                    "annual_income": req.annual_income,
-                    "category": "General"
-                }
-            )
+        if SINGLE_PORT and mock_router is not None:
+            from mock_portal.routes import register_or_update_student as local_register, StudentRegisterRequest
+            local_register(StudentRegisterRequest(
+                student_id="student-demo-001",
+                name=req.student_name,
+                education=req.target_field,
+                state=req.target_state,
+                annual_income=req.annual_income,
+                category="General"
+            ))
+        else:
+            with httpx.Client(timeout=5.0) as http_client:
+                http_client.post(
+                    f"{portal_base}/api/student/register",
+                    json={
+                        "student_id": "student-demo-001",
+                        "name": req.student_name,
+                        "education": req.target_field,
+                        "state": req.target_state,
+                        "annual_income": req.annual_income,
+                        "category": "General"
+                    }
+                )
     except Exception:
         pass
 
@@ -116,12 +126,27 @@ def run_agent_workflow(req: WorkflowRunRequest):
         annual_income=req.annual_income
     )
     
-    summary = orchestrator.run_agent_workflow(
-        intent=intent,
-        simulate_out_of_scope_violation=req.simulate_out_of_scope_violation,
-        simulate_missing_document=req.simulate_missing_document
-    )
-    return summary
+    try:
+        summary = orchestrator.run_agent_workflow(
+            intent=intent,
+            simulate_out_of_scope_violation=req.simulate_out_of_scope_violation,
+            simulate_missing_document=req.simulate_missing_document
+        )
+        return summary
+    except HTTPException:
+        raise
+    except Exception as exc:
+        err_msg = str(exc)
+        exc_name = type(exc).__name__
+        if "Invalid API Key" in err_msg or "InvalidTokenException" in exc_name or "ConfigurationException" in exc_name:
+            raise HTTPException(status_code=401, detail=f"ArmorIQ Authentication / Key Configuration Error: {err_msg}")
+        if "IntentMismatchException" in exc_name:
+            raise HTTPException(status_code=403, detail=f"ArmorIQ Intent Violation: {err_msg}")
+        if "PolicyBlockedException" in exc_name:
+            raise HTTPException(status_code=403, detail=f"ArmorIQ Policy Blocked: {err_msg}")
+        if "MCPInvocationException" in exc_name:
+            raise HTTPException(status_code=502, detail=f"Scholarship MCP Server Unavailable or Failed: {err_msg}")
+        raise HTTPException(status_code=500, detail=f"Agent Workflow Execution Error: {err_msg}")
 
 @app.get("/api/scholarships")
 def list_scholarships(scholarship_type: Optional[str] = None, state: Optional[str] = None):

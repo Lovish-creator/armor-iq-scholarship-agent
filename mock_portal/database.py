@@ -158,6 +158,30 @@ def init_db():
             90000,
             "2026-09-30",
             json.dumps(["marksheet_12th.pdf", "income_certificate.pdf", "domicile_punjab.pdf"])
+        ),
+        (
+            "SCH-WEB-001",
+            "State Post-Matric Higher Education Grant",
+            "government",
+            json.dumps(["Punjab", "Maharashtra", "Delhi", "All India"]),
+            json.dumps(["Engineering", "Computer Science", "Technology", "IT"]),
+            800000,
+            6.0,
+            80000,
+            "2026-11-30",
+            json.dumps(["marksheet_12th.pdf", "income_certificate.pdf", "domicile_punjab.pdf", "domicile_proof.pdf"])
+        ),
+        (
+            "SCH-WEB-002",
+            "Global Tech Foundation National Excellence Award",
+            "private",
+            json.dumps(["All India"]),
+            json.dumps(["Engineering", "Technology", "Computer Science"]),
+            1200000,
+            8.0,
+            120000,
+            "2026-12-31",
+            json.dumps(["marksheet_12th.pdf", "bonafide_certificate.pdf"])
         )
     ]
 

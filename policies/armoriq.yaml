@@ -7,6 +7,11 @@ identity:
 
 environment: production
 
+proxy:
+  url: https://proxy.armoriq.ai
+  timeout: 30
+  max_retries: 3
+
 mcp_servers:
   - id: scholarship
     url: http://127.0.0.1:9000/mcp

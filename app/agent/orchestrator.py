@@ -225,7 +225,7 @@ class ScholarshipAgentOrchestrator:
         captured_plan = self.armoriq.capture_plan(
             llm="gemini-3.6-flash",
             prompt=intent.raw_prompt,
-            plan=plan.dict(),
+            plan=plan.model_dump() if hasattr(plan, "model_dump") else plan.dict(),
         )
 
 
@@ -712,6 +712,14 @@ class ScholarshipAgentOrchestrator:
         else:
             token_for_summary = getattr(intent_token, "token_id", None) or getattr(intent_token, "token_string", None)
 
+        clean_telemetry = None
+        if isinstance(telemetry, dict):
+            clean_telemetry = {
+                k: (getattr(v, "token_id", str(v)) if k == "token" else v)
+                for k, v in telemetry.items()
+                if k != "token"
+            }
+
         return AgentRunSummary(
             intent_id=intent.intent_id,
             user_id=intent.user_id,
@@ -722,7 +730,7 @@ class ScholarshipAgentOrchestrator:
             blocked_steps=blocked_count,
             intent_token=token_for_summary,
             gemini_reasoning=plan.gemini_reasoning,
-            armoriq_telemetry=telemetry,
+            armoriq_telemetry=clean_telemetry,
             step_results=step_results,
             proof_of_non_execution=proof_res,
         )

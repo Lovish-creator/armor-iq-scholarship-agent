@@ -41,7 +41,7 @@ class ScholarshipMCPTools:
         return {
             "tool": "search_scholarships",
             "count": len(results),
-            "scholarships": [r.dict() for r in results],
+            "scholarships": [r.model_dump() if hasattr(r, "model_dump") else r.dict() for r in results],
         }
 
     def get_scholarship_details(
@@ -55,7 +55,7 @@ class ScholarshipMCPTools:
 
         return {
             "tool": "get_scholarship_details",
-            "scholarship": item.dict(),
+            "scholarship": item.model_dump() if hasattr(item, "model_dump") else item.dict(),
         }
 
     def check_eligibility(
@@ -71,7 +71,7 @@ class ScholarshipMCPTools:
 
         return {
             "tool": "check_eligibility",
-            "result": result.dict(),
+            "result": result.model_dump() if hasattr(result, "model_dump") else result.dict(),
         }
 
     def prepare_application(
